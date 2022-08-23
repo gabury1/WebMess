@@ -1,18 +1,24 @@
 package code.controller;
 
+import lombok.extern.log4j.Log4j2;
+import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.util.HtmlUtils;
 
 @Controller
+@Log4j2
 public class MainController
 {
-    @RequestMapping("/")
-    @ResponseBody
-    public String home()
-    {
 
-        return "이야아아 여기가 홈인가??";
+    @GetMapping("/chat")
+    public String chatGET(){
+
+        log.info("@ChatController, chat GET()");
+
+        return "chat";
     }
-
 }
