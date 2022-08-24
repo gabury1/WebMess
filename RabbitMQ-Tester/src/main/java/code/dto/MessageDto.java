@@ -11,6 +11,7 @@ public class MessageDto
     String type;
     String sender;
     String receiver;
+    String channelId;
     Object data;
 
     public void newConnect()

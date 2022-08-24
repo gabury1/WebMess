@@ -1,4 +1,4 @@
-package code.config;
+package code.config.websocket;
 
 import code.dto.MessageDto;
 import lombok.Builder;
