@@ -15,7 +15,7 @@ public class MessageController
     public void message(String message)
     {
 
-        simpMessageSendingOperations.convertAndSend("/sub/channel/eddy", message);
+        simpMessageSendingOperations.convertAndSend("/topic/eddy", message);
     }
 
 }

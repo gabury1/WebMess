@@ -9,7 +9,7 @@
                   send();
               });
 
-              const websocket = new WebSocket("ws://localhost:8080/room");
+              const websocket = new WebSocket("ws://192.168.0.11:8080/room");
 
               websocket.onmessage = onMessage;
               websocket.onopen = onOpen;
