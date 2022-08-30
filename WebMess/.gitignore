@@ -37,4 +37,4 @@ out/
 .vscode/
 
 ### email ###
-/WebMess/src/main/resources/application.properties
+WebMess\src\main\resources\application.properties
