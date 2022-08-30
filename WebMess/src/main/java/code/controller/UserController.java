@@ -4,15 +4,14 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-@Controller
+@Controller @RequestMapping("/user")
 @RequiredArgsConstructor
-public class MainController
+public class UserController
 {
-    @RequestMapping("/")
-    public String home()
+    @RequestMapping("/signup")
+    public String signup()
     {
-        return "/home";
+        return "/user/signup";
     }
-
 
 }

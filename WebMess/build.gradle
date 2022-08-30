@@ -19,18 +19,35 @@ repositories {
 }
 
 dependencies {
-	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-	implementation 'org.springframework.boot:spring-boot-starter-mail'
-	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
-	implementation 'org.springframework.boot:spring-boot-starter-validation'
+
 	implementation 'org.springframework.boot:spring-boot-starter-web'
+
+	// WEB SOCKET
 	implementation 'org.springframework.boot:spring-boot-starter-websocket'
-	implementation 'org.springframework.session:spring-session-core'
+
+	//SPRING SECURITY
+	implementation 'org.springframework.boot:spring-boot-starter-security' // 스프링 시큐리티
+	testImplementation 'org.springframework.security:spring-security-test'
+
+	// LOMBOK
 	compileOnly 'org.projectlombok:lombok'
-	developmentOnly 'org.springframework.boot:spring-boot-devtools'
-	runtimeOnly 'mysql:mysql-connector-java'
 	annotationProcessor 'org.projectlombok:lombok'
+
+	// DATABASE
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	runtimeOnly 'mysql:mysql-connector-java'
+
+	//TEMPLATE ENGINE
+	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+	implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity5'   // 타임리프 스프링 시큐리티 인증 객체
+
+	//IO
+	implementation 'org.springframework.boot:spring-boot-starter-validation' // 유효성 검사
+	implementation 'org.springframework.boot:spring-boot-starter-mail' // 자바 메일 센더
+	implementation 'commons-validator:commons-validator:1.4.1' // Email validator
+	developmentOnly 'org.springframework.boot:spring-boot-devtools' // 핫로드
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+
 }
 
 tasks.named('test') {

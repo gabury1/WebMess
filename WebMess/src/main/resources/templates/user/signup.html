@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"
+            integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+
+    <script src="/js/color_picker/jquery.minicolors.js"></script>
+    <link rel="stylesheet" href="/js/color_picker/jquery.minicolors.css">
+</head>
+<body>
+
+<label>ID : </label> <input id="id" type="text">
+<button onclick="idCheck()">중복확인</button>
+<br>
+<label>PW : </label> <input id="pw" type="password"><br>
+<label>rePW : </label> <input id="repw" type="password"><br>
+<label>NAME : </label> <input id="name" type="text"><br>
+<label>EMAIL : </label> <input id="email" type="text"><button onclick="emailAuth()">인증하기</button>
+<br>
+<button id="color">색깔 선택하기</button>
+<button onclick="authCheck()">확인</button>
+
+<script src="/js/user/signup.js"></script>
+<script type="text/javascript">
+    $('#color').minicolors();
+</script>
+
+</body>
+</html>
