@@ -8,23 +8,28 @@
 
     <script src="/js/color_picker/jquery.minicolors.js"></script>
     <link rel="stylesheet" href="/js/color_picker/jquery.minicolors.css">
+
+    <style type="text/css">
+
+	</style>
 </head>
 <body>
 
-<label>ID : </label> <input id="id" type="text">
-<button onclick="idCheck()">중복확인</button>
+<label>NAME : </label> <input id="name" type="text">
 <br>
-<label>PW : </label> <input id="pw" type="password"><br>
-<label>rePW : </label> <input id="repw" type="password"><br>
-<label>NAME : </label> <input id="name" type="text"><br>
+<label>PW : </label> <input id="pw" type="text"><br>
+<label>rePW : </label> <input id="repw" type="text"><br>
 <label>EMAIL : </label> <input id="email" type="text"><button onclick="emailAuth()">인증하기</button>
 <br>
-<button id="color">색깔 선택하기</button>
-<button onclick="authCheck()">확인</button>
+<input id="personalColor"><input type="text" id="colorName">
+<br>
+
+<button onclick="signup()">확인</button>
 
 <script src="/js/user/signup.js"></script>
 <script type="text/javascript">
-    $('#color').minicolors();
+
+
 </script>
 
 </body>

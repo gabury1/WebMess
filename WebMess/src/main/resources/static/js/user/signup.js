@@ -1,4 +1,19 @@
-var checked = false;
+let color = "";
+
+    $('#personalColor').minicolors({
+        format : 'hex',
+        chaneDelay : 500,
+        letterCase : 'lowercase',
+        position:'bottom left',
+        change : (hex, opacity) =>
+        {
+            color=hex;
+            console.log('change : ' + hex);
+            $('#colour').val(hex);
+        }
+    });
+
+
 
 function authCheck()
 {
@@ -15,24 +30,25 @@ function authCheck()
     });
 }
 
-
 // 회원가입
 function signup()
 {
-    if(checked == false)
-    {
-        alert("ID 체크를 해주세요.");
-        return;
-    }
-
-    let id = $("#id").val();
+    let name = $("#name").val();
     let pw = $("#pw").val();
     let repw = $("#repw").val();
-    let name = $("#name").val();
+    let email = $("#email").val();
+    let colorName = $("#colorName").val();
 
     $.ajax({
         url : "/user/",
-        data : {"id" : id, "pw" : pw, "repw" : repw, "name" : name},
+        data : {
+            "name" : name,
+            "pw" : pw,
+            "repw" : repw,
+            "personalColor" : color,
+            "colorName" : colorName,
+            "email" : email
+            },
         method : "POST",
         success : data => {
             if(data == "success") location.href = "/";
@@ -42,35 +58,11 @@ function signup()
     })
 }
 
-// ID 중복확인
-function idCheck()
-{
-    var id = $("#id").val();
-
-    $.ajax({
-        url : "/user/idcheck",
-        data : {"id" : id},
-        method : "GET",
-        success : message => {
-            if(message == "success")
-            {
-                $("#id").attr("disabled", true);
-                checked = true;
-                alert("사용가능한 ID입니다!");
-            }
-            else
-            {
-                alert("사용할 수 없는 ID입니다.");
-            }
-        },
-        error : e => alert(e.responseText)
-
-    })
-
-}
-
 function emailAuth()
 {
+    alert("죄송합니다~ 아직 안만들었습니다~");
+    return;
+
    var email = $("#email").val();
     $.ajax({
         url : "/auth/token-request",

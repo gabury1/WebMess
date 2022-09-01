@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+  <script src="https://code.jquery.com/jquery-3.6.0.slim.min.js" integrity="sha256-u7e5khyithlIdTpu22PHhENmPcRdFiHRjhAuHcs05RI=" crossorigin="anonymous"></script>
+  <!-- 합쳐지고 최소화된 최신 CSS -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
+  <!-- 합쳐지고 최소화된 최신 자바스크립트 -->
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/js/bootstrap.min.js"></script>
+
+
+</head>
+
+<body>
+<div class="container">
+  <div class="col-6">
+    <label><b>채팅방</b></label>
+  </div>
+  <div>
+    <div id="msgArea" class="col"></div>
+    <div class="col-6">
+      <div class="input-group mb-3">
+        <input type="text" id="msg" class="form-control" aria-label="Recipient's username"
+               aria-describedby="button-addon2">
+        <div class="input-group-append">
+          <button class="btn btn-outline-secondary" type="btn btn-primary" id="button-send">전송</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/js/sock.js"></script>
+
+
+</body>
+
+</html>

@@ -18,7 +18,7 @@ public class UserEntity
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long userNo;
 
-    @Column(name="name")
+    @Column(name="name", unique = true)
     String name; // 유저 이름. 이름이 ID의 역할까지 수행함
 
     @Column(name="password")

@@ -14,5 +14,11 @@ public class MainController
         return "/home";
     }
 
+    @RequestMapping("/chat")
+    public String chat()
+    {
+        return "/chat";
+    }
+
 
 }
