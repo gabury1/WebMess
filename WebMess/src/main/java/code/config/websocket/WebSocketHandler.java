@@ -45,7 +45,7 @@ public class WebSocketHandler extends TextWebSocketHandler
     // 클라이언트가 연결 해제될때 발생하는 이벤트
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status)
     {
-
+        sessions.remove(session);
     }
 
 
