@@ -3,10 +3,16 @@ package code.services;
 import code.domain.user.UserEntity;
 import code.domain.user.UserRepository;
 import code.dto.SignUpDTO;
+import code.dto.UserDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -16,6 +22,9 @@ public class UserService
     UserRepository userRepository;
     @Autowired
     PasswordEncoder encoder;
+
+    @Autowired
+    SecurityContextHolder securityContextHolder;
 
     public String userCreate(SignUpDTO newUser)
     {
@@ -33,5 +42,16 @@ public class UserService
         return "success";
     }
 
+    public Optional<UserDTO> getNowUser()
+    {
+        // 1. 인증 객체 호출
+        Authentication authentication =
+                SecurityContextHolder.getContext().getAuthentication();
 
+        // 2. 인정 정보 객체 호출
+        Object principal = authentication.getPrincipal();
+        if (principal.equals("anonymousUser")) return Optional.ofNullable(null);
+        else return Optional.of((UserDTO) principal);
+
+    }
 }

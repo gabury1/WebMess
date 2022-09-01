@@ -3,6 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <title>WebMess</title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js"
+            integrity="sha512-1QvjE7BtotQjkq8PxLeF6P46gEpBRXuskzIVgjFpekzFVF4yjRgrQvTG1MTOJ3yQgvTteKAcO7DSZI92+u/yZw=="
+            crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.1/jquery.min.js" integrity="sha512-aVKKRRi/Q/YV+4mjoKBsE4x3H+BkegoM/em46NNlCqNTmUYADjBbeNefNxYV7giUp0VxICtqdrbqU7iVaeZNXA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 </head>
 <body>
     <a sec:authorize="isAuthenticated()" href="/user/logout">로그아웃</a>
@@ -11,8 +16,20 @@
     <a sec:authorize="isAnonymous()"  href="/user/signup">회원가입</a>
     <a sec:authorize="isAnonymous()" href="/login">로그인</a>
 
+    <button id="btn">연결</button>
+
 <script>
-    const websocket = new WebSocket("ws://localhost:8080/room");
+    $("#btn").click(
+    ()=>{
+        let socket = new SockJS("/room");
+        socket.onopen = () => console.log("Info : connection opened");
+        socket.onmessage = message => console.log("message : " + message.data);
+        socket.onclose = () => console.log("Info : connection closed");
+        socket.onerror = err => console.log(err);
+        }
+    )
+
+
 </script>
 
 </body>

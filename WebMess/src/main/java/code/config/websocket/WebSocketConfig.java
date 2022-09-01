@@ -15,8 +15,9 @@ public class WebSocketConfig implements WebSocketConfigurer
 {
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-        registry.addHandler(signalingSocketHandler(), "room")
-                .setAllowedOrigins("*");
+        registry.addHandler(signalingSocketHandler(), "/room")
+                .setAllowedOrigins("http://localhost:8080") // 루트 URL 제대로 안해주면 접속할 수 없다. '*'로 처리하지 마라.
+                .withSockJS();
     }
 
     @Bean

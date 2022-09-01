@@ -1,18 +1,19 @@
 package code.config.websocket;
 
-import jdk.internal.org.jline.utils.Log;
+import code.dto.UserDTO;
+import code.services.UserService;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
-import org.springframework.web.socket.config.annotation.WebSocketConfigurer;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
-
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 
@@ -22,16 +23,21 @@ import java.util.concurrent.ConcurrentHashMap;
 public class WebSocketHandler extends TextWebSocketHandler
 {
     private final Map<String, WebSocketSession> sessions = new ConcurrentHashMap<>();
+    @Autowired
+    private UserService userService;
 
     @Override
     // 처음으로 세션에 소켓을 연결했을때 발생하는 이벤트
     public void afterConnectionEstablished(WebSocketSession session) throws Exception
     {
         String sessionId = session.getId();
+
+        //UserDTO user = userService.getNowUser().orElse();
+
+        //session.getAttributes().put();
         sessions.put(sessionId, session);
 
-        Log.info(sessionId);
-
+        session.sendMessage(new TextMessage(sessionId));
     }
 
     @Override

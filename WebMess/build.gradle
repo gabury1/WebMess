@@ -42,6 +42,7 @@ dependencies {
 	implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity5'   // 타임리프 스프링 시큐리티 인증 객체
 
 	//IO
+	implementation group: 'org.json', name: 'json', version: '20220320' // JSON 라이브러리
 	implementation 'org.springframework.boot:spring-boot-starter-validation' // 유효성 검사
 	implementation 'org.springframework.boot:spring-boot-starter-mail' // 자바 메일 센더
 	implementation 'commons-validator:commons-validator:1.4.1' // Email validator
