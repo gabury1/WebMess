@@ -29,9 +29,8 @@ public class SecurityConfig extends Exception
                 .antMatchers("/room/**").permitAll()                                 // 웹소켓 url 허용
                 .antMatchers( "/css/**", "/js/**", "/img/**", "/lib/**").permitAll() // js 등등을 못 불러오면 안되니까...
                 .antMatchers("/user/signup").anonymous()
+                .antMatchers("/user/**").permitAll()                    // 유저 관련 요청은 오케이
                 .antMatchers("/**").authenticated()
-                .and()
-                .cors()
                 .and()
                 .formLogin()                                                            // 로그인 설정(추후 커스텀 예정)
                 .defaultSuccessUrl("/")                                                 // 로그인 성공 시 이동할 URL

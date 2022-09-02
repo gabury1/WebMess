@@ -43,6 +43,7 @@ dependencies {
 
 	//IO
 	implementation group: 'org.json', name: 'json', version: '20220320' // JSON 라이브러리
+	implementation 'com.google.code.gson:gson:2.9.0'					// JSON을 쉽게 쓰도록 해줘요.
 	implementation 'org.springframework.boot:spring-boot-starter-validation' // 유효성 검사
 	implementation 'org.springframework.boot:spring-boot-starter-mail' // 자바 메일 센더
 	implementation 'commons-validator:commons-validator:1.4.1' // Email validator

@@ -1,36 +1,109 @@
 <!DOCTYPE html>
 <html lang="kor">
-<head>
-    <meta charset="UTF-8">
-    <title>WebMess</title>
+    <head>
+        <meta charset="UTF-8">
+        <title>WebMess</title>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js"
+        <script
+            src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js"
             integrity="sha512-1QvjE7BtotQjkq8PxLeF6P46gEpBRXuskzIVgjFpekzFVF4yjRgrQvTG1MTOJ3yQgvTteKAcO7DSZI92+u/yZw=="
-            crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.1/jquery.min.js" integrity="sha512-aVKKRRi/Q/YV+4mjoKBsE4x3H+BkegoM/em46NNlCqNTmUYADjBbeNefNxYV7giUp0VxICtqdrbqU7iVaeZNXA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-</head>
-<body>
-    <a sec:authorize="isAuthenticated()" href="/user/logout">로그아웃</a>
-    <a sec:authorize="isAuthenticated()" sec:authentication="name"></a>
+            crossorigin="anonymous"
+            referrerpolicy="no-referrer"></script>
+        <script
+            src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.1/jquery.min.js"
+            integrity="sha512-aVKKRRi/Q/YV+4mjoKBsE4x3H+BkegoM/em46NNlCqNTmUYADjBbeNefNxYV7giUp0VxICtqdrbqU7iVaeZNXA=="
+            crossorigin="anonymous"
+            referrerpolicy="no-referrer"></script>
 
-    <a sec:authorize="isAnonymous()"  href="/user/signup">회원가입</a>
-    <a sec:authorize="isAnonymous()" href="/login">로그인</a>
+        <style>
+            .removeSB::-webkit-scrollbar { 
+                display: none;
+                width: 0 !important;
+            }
 
-    <button id="btn">연결</button>
+        </style>
+    </head>
+    <body>
+        <div style="border-style: solid;  height: 100px;">
+            <a sec:authorize="isAuthenticated()" href="/user/logout">로그아웃</a>
+            <a sec:authorize="isAuthenticated()" sec:authentication="name"></a>
 
-<script>
-    $("#btn").click(
-    ()=>{
-        let socket = new SockJS("/room");
-        socket.onopen = () => console.log("Info : connection opened");
-        socket.onmessage = message => console.log("message : " + message.data);
-        socket.onclose = () => console.log("Info : connection closed");
-        socket.onerror = err => console.log(err);
-        }
-    )
+            <a sec:authorize="isAnonymous()" href="/user/signup">회원가입</a>
+            <a sec:authorize="isAnonymous()" href="/login">로그인</a>
+        </div>
+        <div id="main" style="display: flex; justify-content: flex-start;">
+            <div
+                id="userBox"
+                style="width: 300px; height: 700px; border-style: solid; border-width: 1px; overflow: scroll;">
+                <h3 id="userCnt"></h3>
+                <table id="userTable"></table>
+            </div>
 
+            <div id="chatBox" style="width: 400px; height: 500px; border-style: solid; border-width: 1px;">
+                <div id="chat"class="removeSB" style="height: 95%; overflow: scroll; background-color: aliceblue; scrollbar-width: 0;">
+                    
+                </div>
+                <input id="txt_send" onkeydown="keyDownEvent(event)" type="text" style="width: 80%;"> <button sec:authorize="isAuthenticated()" onclick="sendMessage()">보내기</button>
+            </div>
+        </div>
 
-</script>
+        <script>
 
-</body>
+            let socket = new SockJS("/room");
+            socket.onopen = () => console.log("Info : connection opened");
+            socket.onmessage = msgEvent;
+            socket.onclose = () => console.log("Info : connection closed");
+            socket.onerror = err => console.log(err);
+
+            function msgEvent(message) {
+                console.log("message : " + message.data);
+                let data = JSON.parse(message.data);
+
+                if (data.for == "userList") { // 유저 리스트가 왔을때
+                    let cntHTML = "<div>현재 연결 수 : " + data.userCnt + "</div>";
+                    let userHTML;
+
+                    for (let i = 0; i < data.users.length; i++) {
+                        userHTML += '<tr>'+
+                        '   <td>'+
+                        '       <label style="color:' + data.users[i].color + '">'+
+                                data.users[i].name +
+                        '       </label>'+
+                        '   </td>'+
+                        '/tr>';
+                    }
+
+                    $("#userCnt").html(cntHTML);
+                    $("#userTable").html(userHTML)
+                }
+                else if(data.for == "chat")
+                {
+                    var html = "";
+                    html += '<label style="color:' + data.color + '">' + data.sender + '</label> : ' + data.content + '<br>';
+                    $("#chat").append(html);
+                    document.getElementById("chat").scrollTop = document.getElementById("chat").scrollHeight;
+
+                }
+            }
+
+            function keyDownEvent(e)
+            {
+                if(e.keyCode === 13)
+                {
+                    sendMessage();
+                }
+            }
+
+            function sendMessage()
+            {
+                var str = $("#txt_send").val();
+                if(str == "") return;
+
+                socket.send(str);
+                $("#txt_send").val("");
+            }
+
+        </script>
+
+    </body>
 </html>

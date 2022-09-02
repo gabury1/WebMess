@@ -29,6 +29,7 @@ public class UserController
     {
         return "으에엑";
     }
+    
     @PostMapping("/")
     @ResponseBody
     public String create(@Validated SignUpDTO newUser, BindingResult error)
