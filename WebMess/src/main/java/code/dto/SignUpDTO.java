@@ -28,7 +28,7 @@ public class SignUpDto
     String email;
 
     @NotEmpty(message="당신의 색깔을 선택해주시겠어요?")
-    String personalColor;
+    String colorCode;
 
     @Size(max=12, message = "색깔의 이름은 12자 이하로 지어주세요!")
     @NotEmpty(message="당신의 색깔에 이름을 붙여주세요!")
@@ -48,7 +48,7 @@ public class SignUpDto
         return UserEntity.builder()
                 .name(name) // 이름(아이디)
                 .password(pw) // 비밀번호
-                .personalColor(personalColor) // 퍼스널 컬러
+                .colorCode(colorCode) // 퍼스널 컬러
                 .colorName(colorName) // 색깔 이름
                 .introduce("안녕하세요!! " + name + "입니다!") // 유저 소게
                 .email(email) // 유저의 이메일

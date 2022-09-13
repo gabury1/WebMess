@@ -22,7 +22,7 @@
         <div id="bigColor" style="min-width:200px; min-height:300px; background: aliceblue;">
         <button id="status" >오프라인</button>
         </div>
-        <input id="personalColor" style="width: 100px" disabled> <input type="text" id="colorName" disabled><br>
+        <input id="colorCode" style="width: 100px" disabled> <input type="text" id="colorName" disabled><br>
         <label>NAME : </label><input id="name" type="text" disabled><br>
         <label>EMAIL : </label><input id="email" type="text" disabled><br>
         <label>소개 </label><br>
@@ -48,12 +48,12 @@
                 }
 
                 // 컬러피커 설정
-                $('#personalColor').minicolors({
+                $('#colorCode').minicolors({
                 format : 'hex',
                 chaneDelay : 500,
                 letterCase : 'lowercase',
                 position:'bottom left',
-                defaultValue: data.personalColor,
+                defaultValue: data.colorCode,
                 change : (hex, opacity) =>
                 {
                     $("#bigColor").css("background", hex);
@@ -61,7 +61,7 @@
                 });
 
                 // 빅 컬러 설정
-                $("#bigColor").css("background", data.personalColor);
+                $("#bigColor").css("background", data.colorCode);
 
                 $("#colorName").val(data.colorName);
                 $("#name").val(data.name);

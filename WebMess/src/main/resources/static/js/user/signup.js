@@ -1,6 +1,6 @@
 let color = "";
 
-    $('#personalColor').minicolors({
+    $('#colorCode').minicolors({
         format : 'hex',
         chaneDelay : 500,
         letterCase : 'lowercase',
@@ -45,7 +45,7 @@ function signup()
             "name" : name,
             "pw" : pw,
             "repw" : repw,
-            "personalColor" : color,
+            "colorCode" : color,
             "colorName" : colorName,
             "email" : email
             },

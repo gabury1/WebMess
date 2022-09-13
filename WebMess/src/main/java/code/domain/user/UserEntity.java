@@ -2,9 +2,12 @@ package code.domain.user;
 
 import code.domain.message.MessageEntity;
 import code.domain.room.RoomEntity;
+import code.dto.WebSocketClient;
 import lombok.*;
 
 import javax.persistence.*;
+
+import java.util.LinkedList;
 import java.util.List;
 
 @Entity @Table(name="user")
@@ -27,8 +30,8 @@ public class UserEntity
     @Column(name="introduce")
     String introduce; // 유저 소개
 
-    @Column(name="personal_color")
-    String personalColor; // 자기 닉네임이 어떤 색으로 뜰지 정하는거임 컬러코드로 들어옴
+    @Column(name="color_code")
+    String colorCode; // 자기 닉네임이 어떤 색으로 뜰지 정하는거임 컬러코드로 들어옴
 
     @Column(name="color_name")
     String colorName; // 그 색깔에 이름도 붙여줄 수 있음
@@ -47,5 +50,20 @@ public class UserEntity
     @JoinColumn(name="message")
     @OneToMany(fetch = FetchType.LAZY)
     List<MessageEntity> messages; // 보냈던 메시지
+
+    public WebSocketClient toWebSocketClient()
+    {
+        return WebSocketClient.builder()
+               .no(userNo)
+               .name(name)
+               .colorCode(colorCode)
+               .colorName(colorName)
+               .email(email)
+               .introduce(introduce)
+               .sessions(new LinkedList<>())
+               //.friends(friends)
+               .build();
+               
+    }
 
 }

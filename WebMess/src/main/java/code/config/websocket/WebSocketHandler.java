@@ -3,12 +3,15 @@ package code.config.websocket;
 import code.domain.user.UserEntity;
 import code.domain.user.UserRepository;
 import code.dto.UserDto;
+import code.dto.WebSocketClient;
 import code.services.UserService;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import net.bytebuddy.implementation.bind.MethodDelegationBinder.ParameterBinding.Anonymous;
 
+import org.apache.commons.collections.map.HashedMap;
 import org.ietf.jgss.GSSContext;
 import org.json.simple.*;
 import org.json.simple.parser.*;
@@ -26,9 +29,13 @@ import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 import org.springframework.web.socket.messaging.SessionConnectedEvent;
 
+import com.fasterxml.jackson.databind.util.JSONPObject;
+
 import javax.mail.Session;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -42,10 +49,10 @@ import java.util.concurrent.ConcurrentHashMap;
 @Getter @Setter
 public class WebSocketHandler extends TextWebSocketHandler
 {
-    // 세션 아이디 기반으로 세션들을 저장함.
-    private final Map<String, WebSocketSession> storageBySessionId = new ConcurrentHashMap<>();
-    // 유저명 기반으로 세션들을 저장함.
-    private final Map<String, List<WebSocketSession>> storageByUserName = new ConcurrentHashMap<>();
+    // 세션들을 저장함.
+    private final List<WebSocketSession> sessionList = new LinkedList<>();
+    // 클라이언트를 WebSocketClient(내가 만듬)에 저장. 여러 세션을 포함할 수 있음.
+    private final Map<String, WebSocketClient> clientStorage = new ConcurrentHashMap<>();
 
     // 유저리스트를 받을 세션들의 리스트
     private final List<WebSocketSession> userListReceiver = new LinkedList<>();
@@ -65,31 +72,40 @@ public class WebSocketHandler extends TextWebSocketHandler
     // 처음으로 세션에 소켓을 연결했을때 발생하는 이벤트
     public void afterConnectionEstablished(WebSocketSession session) throws Exception
     {
-        String sessionId = session.getId();
+        // 유저명, 만약 익명 유저라면 anonymous
         String userName = getUserName(session);
-        if(userName != "anonymous")
-        {
-            UserEntity entity = userRepository.findByName(userName).get(); // 어떤 유저라도 이름이 있으니까 그냥 get으로 받는다.
-            Map<String, Object> attr = session.getAttributes();            // 속성 좀 추가해줄거임. 그러면 DB가 부담을 덜겠지.
-            attr.put("no", entity.getUserNo());
-            attr.put("name", entity.getName());
-            attr.put("personalColor", entity.getPersonalColor());
-        }
 
-        storageBySessionId.put(sessionId, session);
-        // 유저명 기반으로 저장할때는, 다중 접속을 감안하여 리스트에 저장한다.
-        if(!storageByUserName.containsKey(userName))
+        // 세션을 단순히 저장하는 리스트(익명 유저도 저장해준다.)
+        sessionList.add(session);
+
+        // 유저 기반으로 저장(WebSocketClient는 유저 정보와 그가 가진 세션을 포함한다.)
+        // 익명 유저는 제외된다.
+        if(!userName.equals("anonymous")) 
         {
-            List<WebSocketSession> list = new LinkedList<>();
-            list.add(session);
-            storageByUserName.put(userName, list);
+            WebSocketClient client;
+            if(clientStorage.containsKey(userName))
+            {
+                // 이미 클라이언트가 서버에 있다면 그걸 갖고 온다.
+                client = clientStorage.get(userName);
+                client.getSessions().add(session);
+            }
+            else
+            {
+                // DB에서 유저를 찾아와 웹소켓 클라이언트로 만들어준다.
+                UserEntity entity = userRepository.findByName(userName).get();
+                client = entity.toWebSocketClient();
+                client.getSessions().add(session);
+                // 클라이언트맵에 저장해준다.
+                clientStorage.put(userName, client);
+            }
+
+            // 속성 좀 추가해줄거임. 그러면 DB가 부담을 덜겠지.
+            Map<String, Object> attr = session.getAttributes();           
+            attr.put("no", client.getNo());
+            attr.put("name", client.getName());
+            attr.put("colorCode", client.getColorCode());
+            
         }
-        else
-        {
-            storageByUserName.get(userName).add(session);
-        }
-        
-        session.sendMessage(new TextMessage(sessionId));
 
     }
 
@@ -97,22 +113,24 @@ public class WebSocketHandler extends TextWebSocketHandler
     protected void handleTextMessage(WebSocketSession session, TextMessage textMessage)
     {
         String userName = getUserName(session);
-        if(userName.equals("anonymous")) return; // 익명맨은 채팅칠 수 없음.
     
-
         try{
+
             JSONObject json = (JSONObject)parser.parse(textMessage.getPayload());
 
             if(json.get("purpose").equals("subscribe"))
             {
+                // 어떤 정보를 수신하겠다는 선언
                 subscribe(session, json);
             }
             else if(json.get("purpose").equals("chat"))
             {
+                // 전체 채팅
                 allChat(session, json);
             }
             else if(json.get("purpose").equals("status"))
             {
+                // 특정 유저의 온라인/오프라인 상태를 체크
                 getStatus(session, json);
             }
 
@@ -126,11 +144,19 @@ public class WebSocketHandler extends TextWebSocketHandler
     // 클라이언트가 연결 해제될때 발생하는 이벤트
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status)
     {
-        List<WebSocketSession> list = storageByUserName.get(getUserName(session));
-        list.remove(session);
-        if(list.isEmpty()) storageByUserName.remove(getUserName(session));
+        String userName = getUserName(session);
 
-        storageBySessionId.remove(session.getId());
+        // 세션리스트에서 세션 삭제
+        sessionList.remove(session);
+
+        // 익명 유저가 아니라면 클라이언트에서도 삭제.
+        if(!userName.equals("anonymous"))
+        {
+            List<WebSocketSession> list = clientStorage.get(getUserName(session)).getSessions();
+
+            list.remove(session);
+            if(list.isEmpty()) clientStorage.remove(getUserName(session));
+        }
 
         if(userListReceiver.contains(session)) userListReceiver.remove(session);
         if(chatReceiver.contains(session)) chatReceiver.remove(session);
@@ -144,6 +170,8 @@ public class WebSocketHandler extends TextWebSocketHandler
     // 특정 정보를 수신하겠다는 선언
     public void subscribe(WebSocketSession session, JSONObject request)
     {
+        System.out.println(sessionList);
+        System.out.println(request.toJSONString());
         if(request.get("target").equals("userList")) userListReceiver.add(session);
         if(request.get("target").equals("chat")) chatReceiver.add(session);
 
@@ -155,13 +183,14 @@ public class WebSocketHandler extends TextWebSocketHandler
         Map<String, Object> attr = session.getAttributes();
 
         // 전송할 데이터를 JSON에 담아줘야함.
-        JSONObject response = new JSONObject();
-        response.put("purpose", "chat");
-        response.put("sender", attr.get("name"));
-        response.put("color", attr.get("personalColor"));
-        response.put("content", request.get("content"));
+        // 맵에 담아서 보내주는게 JSONObject 생성자에 넘겨줌.
+        Map<String, Object> m = new HashMap<>(); 
+        m.put("purpose", "chat");
+        m.put("sender", attr.get("name"));
+        m.put("color", attr.get("colorCode"));
+        m.put("content", request.get("content"));
         
-        String jsonString =  response.toString(); 
+        String jsonString =  new JSONObject(m).toJSONString(); 
 
         // 모든 클라이언트에게 보내준다.
         for(WebSocketSession s : chatReceiver)
@@ -177,16 +206,19 @@ public class WebSocketHandler extends TextWebSocketHandler
     // 유저가 온라인인가 오프라인인가??
     public void getStatus(WebSocketSession session, JSONObject request)
     {
-        JSONObject object = new JSONObject();
+        HashMap<String, Object> status = new HashMap<>();
 
-        object.put("purpose", "status");
-        object.put("user", request.get("target"));
+        status.put("purpose", "status");
+        status.put("user", request.get("target"));
 
-        if(storageByUserName.keySet().contains(request.get("target"))) object.put("now", "online");
-        else object.put("now", "offline");
+        // 만약 클라이언트 리스트에 유저명이 있다면 online, 아니면 offline
+        if(clientStorage.keySet().contains(request.get("target"))) status.put("now", "online");
+        else status.put("now", "offline");
+
+        String jsonString = new JSONObject(status).toJSONString();
 
         try{
-            session.sendMessage(new TextMessage(object.toJSONString()));
+            session.sendMessage(new TextMessage(jsonString));
         } catch(Exception e) {System.out.println(e.getLocalizedMessage());}
         
     }
@@ -195,7 +227,9 @@ public class WebSocketHandler extends TextWebSocketHandler
     ///////////////////
     //// Scheduled ////
     ///////////////////
-    @Scheduled(fixedDelay=1000)
+
+    // 유저 정보를 송신해줌. (주기적으로 송신해야하는 )
+    @Scheduled(fixedDelay=500)
     public void sendUsers()
     {
         String json = authenticUserList().toString();
@@ -223,33 +257,33 @@ public class WebSocketHandler extends TextWebSocketHandler
         {
             return "anonymous";
         }
-
+        
     }
 
+    // 인증된 유저들의 목록과 숫자를 반환해준다.
     JSONObject authenticUserList()
     {
-        JSONObject object = new JSONObject();
+        HashMap<String, Object> userList = new HashMap<>();
 
-        JSONArray array = new JSONArray();
-        for(String s : storageByUserName.keySet())
+        // 유저리스트를 담을 배열
+        ArrayList<JSONObject> array = new ArrayList<>();
+        for(WebSocketClient s : clientStorage.values())
         {
-            if(s.equals("anonymous")) continue;
-            
-            JSONObject info = new JSONObject();
-            Map<String, Object> attr = storageByUserName.get(s).get(0).getAttributes();
+            // 유저 정보를 담을 해쉬맵
+            HashMap<String, Object> info = new HashMap<>();
 
-            info.put("no", attr.get("no"));
-            info.put("name", attr.get("name"));
-            info.put("color", attr.get("personalColor"));
+            info.put("no", s.getNo());
+            info.put("name", s.getName());
+            info.put("color", s.getColorCode());
 
-            array.add(info);
+            array.add(new JSONObject(info));
         }
 
-        object.put("purpose", "userList");
-        object.put("userCnt", storageBySessionId.size());
-        object.put("users", array);
+        userList.put("purpose", "userList");
+        userList.put("userCnt", sessionList.size());
+        userList.put("users", array);
 
-        return object;
+        return new JSONObject(userList);
     }
 
 

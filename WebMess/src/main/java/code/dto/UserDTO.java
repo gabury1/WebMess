@@ -20,7 +20,7 @@ public class UserDto implements UserDetails
     String email;           // 이메일
     String introduce;       // 본인 소개
 
-    String personalColor;   // 개인 색깔
+    String colorCode;   // 개인 색깔
     String colorName;       // 색깔 이름
 
     private Set<GrantedAuthority> authorities;  // 부여된 인증들의 권한
@@ -31,7 +31,7 @@ public class UserDto implements UserDetails
         password = user.getPassword();
         name = user.getName();
         introduce = user.getIntroduce();
-        personalColor = user.getPersonalColor();
+        colorCode = user.getColorCode();
         colorName = user.getColorName();
         email = user.getEmail();
     }

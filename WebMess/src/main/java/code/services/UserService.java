@@ -48,7 +48,7 @@ public class UserService {
             object.put("userNo", user.getUserNo());
             object.put("name", user.getName());
             object.put("introduce", user.getIntroduce());
-            object.put("personalColor", user.getPersonalColor());
+            object.put("colorCode", user.getColorCode());
             object.put("colorName", user.getColorName());
             object.put("email", user.getEmail());
 
