@@ -11,17 +11,19 @@ import javax.validation.constraints.Size;
 @RequiredArgsConstructor
 @AllArgsConstructor
 @Builder @EqualsAndHashCode
-public class SignUpDTO
+public class SignUpDto
 {
     static final EmailValidator validator = EmailValidator.getInstance();
 
     @Size(min=2, max=21, message="이름은 2자에서 21자로 지어주세요.")
     @NotEmpty(message="이름을 입력해주세요.")
     String name;
+
     @Size(min=8, max=21, message="비밀번호는 8자에서 21자로 지어주세요.")
     @NotEmpty(message="비밀번호를 입력해주세요.")
     String pw;
     String repw;
+    
     @NotEmpty(message="이메일을 입력해주세요.")
     String email;
 

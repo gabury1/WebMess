@@ -1,0 +1,35 @@
+#search_box{
+
+    width: 500px; 
+    height: 40px; 
+    border-style: solid;
+    justify-content: space-around;
+    margin: 10px;
+
+}
+
+#search_input{
+    border-style: none;
+    font-size: 20px;
+    width: 400px;
+}
+
+#search_button{
+    
+}
+
+#result_box{
+    border-style: solid;
+    width: 500px;
+    height: 90%;
+    margin: 10px;
+}
+
+
+#friend_box{
+
+    width: 400px;
+    height: 90%;
+    border-style: solid;
+    margin-left: 50px;
+}

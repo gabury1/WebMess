@@ -1,12 +1,17 @@
 package code.controller;
 
-import code.dto.SignUpDTO;
+import code.dto.SignUpDto;
 import code.services.UserService;
 import lombok.RequiredArgsConstructor;
+
+import javax.servlet.http.HttpServletResponse;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -23,16 +28,17 @@ public class UserController
     {
         return "/user/signup";
     }
-    @RequestMapping("/login")
-    @ResponseBody
-    public String login()
+
+    @RequestMapping("/{userNo}")
+    public String detail()
     {
-        return "으에엑";
+
+        return "/user/detail";
     }
-    
+
     @PostMapping("/")
     @ResponseBody
-    public String create(@Validated SignUpDTO newUser, BindingResult error)
+    public String create(@Validated SignUpDto newUser, BindingResult error)
     {
         if(error.hasErrors()) return error.getAllErrors().get(0).getDefaultMessage();
 
@@ -42,5 +48,21 @@ public class UserController
         return userService.userCreate(newUser);
     }
 
+    // Read
+    @GetMapping("/")
+    public void read(@Param("userNo") Long userNo, HttpServletResponse response)
+    {
+        try{
+
+            response.setCharacterEncoding("UTF-8");
+            response.setContentType("application/json");
+            response.getWriter().print(userService.getUserDetail(userNo));
+        }
+        catch(Exception e)
+        {
+            
+        }
+        
+    }
 
 }

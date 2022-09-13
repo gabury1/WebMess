@@ -2,7 +2,7 @@ package code.services;
 
 import code.domain.user.UserEntity;
 import code.domain.user.UserRepository;
-import code.dto.UserDTO;
+import code.dto.UserDto;
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +26,6 @@ public class LoginService implements UserDetailsService
         Optional<UserEntity> optional = userRepository.findByName(username);
         if(!optional.isPresent()) return null;
 
-        return new UserDTO(optional.get());
+        return new UserDto(optional.get());
     }
 }

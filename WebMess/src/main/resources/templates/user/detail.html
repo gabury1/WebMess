@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        
+        <meta charset="UTF-8">
+        <title>유저정보</title>
+        
+        <!--JQuery-->
+        <script src="https://code.jquery.com/jquery-3.6.0.min.js"
+                integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+    
+        <!--mini colors-->
+        <script src="/js/color_picker/jquery.minicolors.js"></script>
+        <link rel="stylesheet" href="/js/color_picker/jquery.minicolors.css">
+        <!--SockJS-->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js"
+                integrity="sha512-1QvjE7BtotQjkq8PxLeF6P46gEpBRXuskzIVgjFpekzFVF4yjRgrQvTG1MTOJ3yQgvTteKAcO7DSZI92+u/yZw=="
+                crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
+    </head>
+    <body>
+        <div id="bigColor" style="min-width:200px; min-height:300px; background: aliceblue;">
+        <button id="status" >오프라인</button>
+        </div>
+        <input id="personalColor" style="width: 100px" disabled> <input type="text" id="colorName" disabled><br>
+        <label>NAME : </label><input id="name" type="text" disabled><br>
+        <label>EMAIL : </label><input id="email" type="text" disabled><br>
+        <label>소개 </label><br>
+        <textarea id="introduce" disabled></textarea><br>
+
+        <button onclick="alert('아직 안만들었어용ㅇ~~ㅎㅎ');">친구되기</button>
+
+        <script>
+
+            var name;
+
+            $.ajax({
+                url : "/user/",
+                data : {"userNo" : getNo()},
+                method : "GET",
+                success : (data) => {
+
+                console.log(data);
+                if(JSON.stringify(data) == "{}")
+                {
+                    alert("no data");   
+                    return;
+                }
+
+                // 컬러피커 설정
+                $('#personalColor').minicolors({
+                format : 'hex',
+                chaneDelay : 500,
+                letterCase : 'lowercase',
+                position:'bottom left',
+                defaultValue: data.personalColor,
+                change : (hex, opacity) =>
+                {
+                    $("#bigColor").css("background", hex);
+                }
+                });
+
+                // 빅 컬러 설정
+                $("#bigColor").css("background", data.personalColor);
+
+                $("#colorName").val(data.colorName);
+                $("#name").val(data.name);
+                $("#email").val(data.email);
+                $("#introduce").html(data.introduce);
+
+                name = data.name;
+
+                },
+                error : (e) => alert(e.responseText) 
+            });
+
+            let socket = new SockJS("/room");
+            socket.onopen = () => {
+                console.log("Info : connection opened");
+
+                // 이 유저의 상태를 받아온다.
+                var request = {
+                    purpose : "status",
+                    target : name
+                };
+                socket.send(JSON.stringify(request));
+
+                // 유저리스트를 수신하겠다는 선언
+                var subscribe = {
+                    purpose : "subscribe",
+                    target : "userList"
+                };
+                socket.send(JSON.stringify(subscribe));
+
+            };
+            socket.onmessage = msgEvent;
+            socket.onclose = () => console.log("Info : connection closed");
+            socket.onerror = err => console.log(err);
+
+            function msgEvent(message)
+            {
+                var data = JSON.parse(message.data);
+                if(data.purpose == "userList")
+                {
+                    var flag = false;
+                    data.users.forEach((u)=>{
+
+                        if(u.no == getNo())
+                        {
+                            flag = true;
+                        }
+                    })
+                    
+                    if(flag == true)
+                    {
+                        $("#status").css("background", "lime");
+                        $("#status").html("ONLINE");
+                    }
+                    else
+                    {
+                        $("#status").css("background", "red");
+                        $("#status").html("OFFLINE");
+                    }
+
+                }
+                else if(data.purpose == "status")
+                {
+                    if(data.now == "online")
+                    {
+                        $("#status").css("background", "lime");
+                            $("#status").html("ONLINE");
+                            return;
+                    }
+                    else
+                    {
+                        $("#status").css("background", "red");
+                            $("#status").html("OFFLINE");
+                            return;
+                    }
+
+                }
+
+
+
+            }
+
+            function getNo()
+            {
+                return  document.location.href.split("/")[4];
+            }
+
+        </script>
+
+    </body>
+</html>

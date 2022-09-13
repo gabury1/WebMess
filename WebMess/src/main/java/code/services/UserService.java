@@ -2,9 +2,11 @@ package code.services;
 
 import code.domain.user.UserEntity;
 import code.domain.user.UserRepository;
-import code.dto.SignUpDTO;
-import code.dto.UserDTO;
+import code.dto.SignUpDto;
+import code.dto.UserDto;
 import lombok.RequiredArgsConstructor;
+
+import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -16,9 +18,14 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 public class UserService {
-    @Autowired UserRepository userRepository;
-    @Autowired PasswordEncoder encoder;
-    public String userCreate(SignUpDTO newUser) {
+
+    @Autowired
+    UserRepository userRepository;
+    
+    @Autowired
+    PasswordEncoder encoder;
+
+    public String userCreate(SignUpDto newUser) {
         UserEntity user = newUser.toEntity();
         user.setPassword(encoder.encode(user.getPassword())); // 패스워드를 암호화하여 저장할거임.
 
@@ -31,7 +38,30 @@ public class UserService {
         return "success";
     }
 
-    public Optional<UserDTO> getNowUser() {
+    public JSONObject getUserDetail(Long userNo)
+    {
+        JSONObject object = new JSONObject();
+
+        try{
+            UserEntity user = userRepository.findByUserNo(userNo).orElseThrow(Exception::new);
+
+            object.put("userNo", user.getUserNo());
+            object.put("name", user.getName());
+            object.put("introduce", user.getIntroduce());
+            object.put("personalColor", user.getPersonalColor());
+            object.put("colorName", user.getColorName());
+            object.put("email", user.getEmail());
+
+            return object;
+
+        }catch(Exception e)
+        {
+            return object;
+        }
+
+    }
+
+    public Optional<UserDto> getNowUser() {
 
         // 1. 인증 객체 호출
         Authentication authentication = SecurityContextHolder
@@ -42,7 +72,7 @@ public class UserService {
         if (principal.equals("anonymousUser")) 
             return Optional.ofNullable(null);
         else 
-            return Optional.of((UserDTO)principal);
+            return Optional.of((UserDto)principal);
 
         }
     }

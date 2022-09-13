@@ -2,17 +2,16 @@ package code.config.websocket;
 
 import code.domain.user.UserEntity;
 import code.domain.user.UserRepository;
-import code.dto.UserDTO;
+import code.dto.UserDto;
 import code.services.UserService;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 
-import org.apache.tomcat.util.json.JSONParser;
 import org.ietf.jgss.GSSContext;
-import org.json.JSONArray;
-import org.json.JSONObject;
+import org.json.simple.*;
+import org.json.simple.parser.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.context.support.MessageSourceAccessor;
@@ -48,8 +47,19 @@ public class WebSocketHandler extends TextWebSocketHandler
     // 유저명 기반으로 세션들을 저장함.
     private final Map<String, List<WebSocketSession>> storageByUserName = new ConcurrentHashMap<>();
 
+    // 유저리스트를 받을 세션들의 리스트
+    private final List<WebSocketSession> userListReceiver = new LinkedList<>();
+    // 채팅을 받을 세션들의 리스트
+    private final List<WebSocketSession> chatReceiver = new LinkedList<>();
+
+    // JSON parser
+    private static final JSONParser parser = new JSONParser();
     @Autowired
     UserRepository userRepository;
+
+    //////////////////////
+    /// Event Listener ///
+    //////////////////////
 
     @Override
     // 처음으로 세션에 소켓을 연결했을때 발생하는 이벤트
@@ -86,28 +96,29 @@ public class WebSocketHandler extends TextWebSocketHandler
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage textMessage)
     {
-        JSONObject object = new JSONObject();
-        Map<String, Object> attr = session.getAttributes();
+        String userName = getUserName(session);
+        if(userName.equals("anonymous")) return; // 익명맨은 채팅칠 수 없음.
+    
 
-        object.put("for", "chat");
-        object.put("sender", attr.get("name"));
-        object.put("color", attr.get("personalColor"));
-        object.put("content", textMessage.getPayload());
+        try{
+            JSONObject json = (JSONObject)parser.parse(textMessage.getPayload());
 
-        String jsonString =  object.toString(); 
-
-
-        for(WebSocketSession s : storageBySessionId.values())
-        {
-            try{
-                s.sendMessage(new TextMessage(jsonString));
-            }
-            catch(IOException e)
+            if(json.get("purpose").equals("subscribe"))
             {
-                
+                subscribe(session, json);
             }
-            
+            else if(json.get("purpose").equals("chat"))
+            {
+                allChat(session, json);
+            }
+            else if(json.get("purpose").equals("status"))
+            {
+                getStatus(session, json);
+            }
+
         }
+        catch(Exception e) {System.out.println(e.getMessage());}            
+
 
     }
 
@@ -120,14 +131,75 @@ public class WebSocketHandler extends TextWebSocketHandler
         if(list.isEmpty()) storageByUserName.remove(getUserName(session));
 
         storageBySessionId.remove(session.getId());
+
+        if(userListReceiver.contains(session)) userListReceiver.remove(session);
+        if(chatReceiver.contains(session)) chatReceiver.remove(session);
+
     }
 
-    //scheduled
+    /////////////////////
+    /// Message Event ///
+    /////////////////////
+
+    // 특정 정보를 수신하겠다는 선언
+    public void subscribe(WebSocketSession session, JSONObject request)
+    {
+        if(request.get("target").equals("userList")) userListReceiver.add(session);
+        if(request.get("target").equals("chat")) chatReceiver.add(session);
+
+    }
+
+    // 채팅 수신
+    public void allChat(WebSocketSession session, JSONObject request)
+    {
+        Map<String, Object> attr = session.getAttributes();
+
+        // 전송할 데이터를 JSON에 담아줘야함.
+        JSONObject response = new JSONObject();
+        response.put("purpose", "chat");
+        response.put("sender", attr.get("name"));
+        response.put("color", attr.get("personalColor"));
+        response.put("content", request.get("content"));
+        
+        String jsonString =  response.toString(); 
+
+        // 모든 클라이언트에게 보내준다.
+        for(WebSocketSession s : chatReceiver)
+        {
+            try{
+                s.sendMessage(new TextMessage(jsonString)); 
+            }
+            catch(IOException e){   
+            }
+        }
+    }
+
+    // 유저가 온라인인가 오프라인인가??
+    public void getStatus(WebSocketSession session, JSONObject request)
+    {
+        JSONObject object = new JSONObject();
+
+        object.put("purpose", "status");
+        object.put("user", request.get("target"));
+
+        if(storageByUserName.keySet().contains(request.get("target"))) object.put("now", "online");
+        else object.put("now", "offline");
+
+        try{
+            session.sendMessage(new TextMessage(object.toJSONString()));
+        } catch(Exception e) {System.out.println(e.getLocalizedMessage());}
+        
+    }
+
+
+    ///////////////////
+    //// Scheduled ////
+    ///////////////////
     @Scheduled(fixedDelay=1000)
     public void sendUsers()
     {
         String json = authenticUserList().toString();
-        storageBySessionId.values().forEach(v -> {
+        userListReceiver.forEach(v -> {
             try {
                 v.sendMessage(new TextMessage(json));
 
@@ -138,10 +210,9 @@ public class WebSocketHandler extends TextWebSocketHandler
         });
     }
 
-
-    ///////////////////
-    // 몇가지 기능들
-    //////////////////
+    /////////////////////
+    //////// etc ////////
+    /////////////////////
     String getUserName(WebSocketSession session)
     {
         try{
@@ -171,10 +242,10 @@ public class WebSocketHandler extends TextWebSocketHandler
             info.put("name", attr.get("name"));
             info.put("color", attr.get("personalColor"));
 
-            array.put(info);
+            array.add(info);
         }
 
-        object.put("for", "userList");
+        object.put("purpose", "userList");
         object.put("userCnt", storageBySessionId.size());
         object.put("users", array);
 

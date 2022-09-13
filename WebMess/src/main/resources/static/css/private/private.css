@@ -1,0 +1,35 @@
+body{
+    display: flex; 
+    flex-direction: row; 
+    margin: 0; 
+    height: 100vh;
+}
+
+#side_bar{
+    border-style: solid; 
+    width:100px; 
+    height: 99%; 
+}
+
+#app_box{
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: stretch;
+
+    width: 100%;
+}
+
+#menu{
+    list-style: none;
+    cursor: pointer;
+}
+
+.menu_item:hover{
+    color: #00dbc5;
+}
+
+.flex{
+    display: flex;
+    flex-direction: row;
+}

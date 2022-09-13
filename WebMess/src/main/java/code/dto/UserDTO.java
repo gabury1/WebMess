@@ -12,7 +12,7 @@ import java.util.Set;
 @AllArgsConstructor
 @Getter @Setter @Builder
 @ToString @EqualsAndHashCode
-public class UserDTO implements UserDetails
+public class UserDto implements UserDetails
 {
     Long no;            // 번호
     String name;        // 이름
@@ -25,7 +25,7 @@ public class UserDTO implements UserDetails
 
     private Set<GrantedAuthority> authorities;  // 부여된 인증들의 권한
 
-    public UserDTO(UserEntity user)
+    public UserDto(UserEntity user)
     {
         no = user.getUserNo();
         password = user.getPassword();

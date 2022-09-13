@@ -14,7 +14,6 @@
             integrity="sha512-aVKKRRi/Q/YV+4mjoKBsE4x3H+BkegoM/em46NNlCqNTmUYADjBbeNefNxYV7giUp0VxICtqdrbqU7iVaeZNXA=="
             crossorigin="anonymous"
             referrerpolicy="no-referrer"></script>
-
         <style>
             .removeSB::-webkit-scrollbar { 
                 display: none;
@@ -24,18 +23,26 @@
         </style>
     </head>
     <body>
-        <div style="border-style: solid;  height: 100px;">
+        <div style="border-style: solid;  height: 150px;">
+            <h2 >사이트명 : WebMess</h2><h3 >부제 : ~디자인은 아직입니다~</h3>
             <a sec:authorize="isAuthenticated()" href="/user/logout">로그아웃</a>
             <a sec:authorize="isAuthenticated()" sec:authentication="name"></a>
 
             <a sec:authorize="isAnonymous()" href="/user/signup">회원가입</a>
             <a sec:authorize="isAnonymous()" href="/login">로그인</a>
+
         </div>
-        <div id="main" style="display: flex; justify-content: flex-start;">
+        <div id="main" style="display: flex; justify-content: flex-start; align-items: flex-start;">
             <div
                 id="userBox"
                 style="width: 300px; height: 700px; border-style: solid; border-width: 1px; overflow: scroll;">
                 <h3 id="userCnt"></h3>
+                <table id="userTable"></table>
+            </div>
+            <div
+                id="nearBox"
+                style="width: 300px; height: 700px; border-style: solid; border-width: 1px; overflow: scroll;">
+                <h3 id="userCnt">근처 유저(미구현)</h3>
                 <table id="userTable"></table>
             </div>
 
@@ -43,14 +50,37 @@
                 <div id="chat"class="removeSB" style="height: 95%; overflow: scroll; background-color: aliceblue; scrollbar-width: 0;">
                     
                 </div>
-                <input id="txt_send" onkeydown="keyDownEvent(event)" type="text" style="width: 80%;"> <button sec:authorize="isAuthenticated()" onclick="sendMessage()">보내기</button>
+                <input id="txt_send" onkeydown="keyDownEvent(event)" type="text" style="width: 80%;" sec:authorize="isAuthenticated()"> 
+                    <button sec:authorize="isAuthenticated()" onclick="sendMessage()">보내기</button>
             </div>
+
+            <div>   
+                <button onclick="location.href='/private/'">개인</button>
+            </div>
+
         </div>
 
         <script>
 
             let socket = new SockJS("/room");
-            socket.onopen = () => console.log("Info : connection opened");
+            socket.onopen = () => 
+            {
+                console.log("Info : connection opened");
+
+                // 유저리스트를 수신하겠다는 선언
+                var subscribe = {
+                    purpose : "subscribe",
+                    target : "userList"
+                };
+                socket.send(JSON.stringify(subscribe));
+
+                // 채팅을 수신하겠다는 선언
+                subscribe = {
+                    purpose : "subscribe",
+                    target : "chat"
+                };
+                socket.send(JSON.stringify(subscribe));
+            };
             socket.onmessage = msgEvent;
             socket.onclose = () => console.log("Info : connection closed");
             socket.onerror = err => console.log(err);
@@ -59,16 +89,16 @@
                 console.log("message : " + message.data);
                 let data = JSON.parse(message.data);
 
-                if (data.for == "userList") { // 유저 리스트가 왔을때
+                if (data.purpose == "userList") { // 유저 리스트가 왔을때
                     let cntHTML = "<div>현재 연결 수 : " + data.userCnt + "</div>";
                     let userHTML;
 
                     for (let i = 0; i < data.users.length; i++) {
                         userHTML += '<tr>'+
                         '   <td>'+
-                        '       <label style="color:' + data.users[i].color + '">'+
+                        '       <a href="/user/' + data.users[i].no + '" style="color:' + data.users[i].color + '">'+
                                 data.users[i].name +
-                        '       </label>'+
+                        '       </a>'+
                         '   </td>'+
                         '/tr>';
                     }
@@ -76,7 +106,7 @@
                     $("#userCnt").html(cntHTML);
                     $("#userTable").html(userHTML)
                 }
-                else if(data.for == "chat")
+                else if(data.purpose == "chat")
                 {
                     var html = "";
                     html += '<label style="color:' + data.color + '">' + data.sender + '</label> : ' + data.content + '<br>';
@@ -99,7 +129,12 @@
                 var str = $("#txt_send").val();
                 if(str == "") return;
 
-                socket.send(str);
+                var message = {
+                    purpose : "chat",
+                    content : str
+                };
+
+                socket.send(JSON.stringify(message));
                 $("#txt_send").val("");
             }
 
