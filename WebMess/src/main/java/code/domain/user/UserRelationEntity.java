@@ -1,6 +1,5 @@
-package code.domain.userRelation;
+package code.domain.user;
 
-import code.domain.user.UserEntity;
 import lombok.*;
 
 import javax.persistence.*;

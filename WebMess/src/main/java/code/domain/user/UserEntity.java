@@ -7,6 +7,7 @@ import lombok.*;
 
 import javax.persistence.*;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -39,6 +40,9 @@ public class UserEntity
     @Column(name="email")
     String email; // 이메일 (변경 불가)
 
+
+
+    
     @JoinColumn(name="member1")
     @OneToMany(fetch = FetchType.LAZY)
     List<RoomEntity> rooms1; // 멤버1로 들어가있는 방
@@ -51,8 +55,27 @@ public class UserEntity
     @OneToMany(fetch = FetchType.LAZY)
     List<MessageEntity> messages; // 보냈던 메시지
 
+
+    @JoinColumn(name="main")
+    @OneToMany(fetch = FetchType.EAGER)
+    List<UserRelationEntity> main; // 본인이 등록한 친구 관계
+
+    @JoinColumn(name="sub")
+    @OneToMany(fetch = FetchType.LAZY)
+    List<UserRelationEntity> sub; // 다른 사람이 본인을 친구로 등록한 관계
+
     public WebSocketClient toWebSocketClient()
     {
+        
+        List<String> friends = new ArrayList<>();
+        
+        if(main != null)
+        {   
+            main.forEach((r)->{
+                friends.add(r.sub.getName()); 
+            });
+        }
+
         return WebSocketClient.builder()
                .no(userNo)
                .name(name)
@@ -61,7 +84,7 @@ public class UserEntity
                .email(email)
                .introduce(introduce)
                .sessions(new LinkedList<>())
-               //.friends(friends)
+               .friends(friends)
                .build();
                
     }

@@ -28,12 +28,12 @@
         <label>소개 </label><br>
         <textarea id="introduce" disabled></textarea><br>
 
-        <button onclick="alert('아직 안만들었어용ㅇ~~ㅎㅎ');">친구되기</button>
+        <button id="friendButton" sec:authorize="isAuthenticated()" onclick="requestFriend()">친구되기</button>
 
         <script>
 
-            var name;
-
+            let name;
+            // 전반적인 유저 정보를 불러오는 ajax
             $.ajax({
                 url : "/user/",
                 data : {"userNo" : getNo()},
@@ -68,11 +68,28 @@
                 $("#email").val(data.email);
                 $("#introduce").html(data.introduce);
 
+                // 자신과 친구가 될 수는 없으므로.
+                if(data.isOwner == true) $("#friendButton").hide();
+
+
                 name = data.name;
 
                 },
                 error : (e) => alert(e.responseText) 
             });
+            // 이 사람이 나와 친구인가?? ajax
+            $.ajax({
+                url : "/user/relation",
+                data : {"subNo" : getNo()},
+                method : "GET",
+                success : (message) => {
+                    console.log("isMyFriend Result : " + message);
+                    if(message == "true") $("#friendButton").html("이미 친구입니다! 다시 누르면 친구를 해제할 수 있어요.");
+                    else if(message == "false") $("#friendButton").html("친구 되기");
+                    else alert(message);
+                },
+                error : (e) => {alert(e.responseText);}
+            })
 
             let socket = new SockJS("/room");
             socket.onopen = () => {
@@ -142,6 +159,24 @@
 
 
 
+            }
+
+            function requestFriend()
+            {
+                $.ajax({
+                    url : "/user/relation",
+                    data : {"subNo" : getNo()},
+                    method : "POST",
+                    success : (message) => {
+                        console.log("requestFriend Result : " + message);
+                        if(message == "okFriend") $("#friendButton").html("친구가 되었습니다!");
+                        else if(message == "notFriend") $("#friendButton").html("더 이상 친구가 아닙니다..");
+                        else alert(message);
+                    
+                    },
+                    error : (e) => {alert(e.responseText)}  
+                })
+                
             }
 
             function getNo()

@@ -34,7 +34,7 @@ public class WebSocketClient
     List<WebSocketSession> sessions;
     
     // 현재 친구들
-    List<UserEntity> friends;
+    List<String> friends;
     // 내가 속한 방들
 
 }

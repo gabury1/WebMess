@@ -55,9 +55,9 @@ public class WebSocketHandler extends TextWebSocketHandler
     private final Map<String, WebSocketClient> clientStorage = new ConcurrentHashMap<>();
 
     // 유저리스트를 받을 세션들의 리스트
-    private final List<WebSocketSession> userListReceiver = new LinkedList<>();
+    private final List<WebSocketSession> userListReceivers = new LinkedList<>();
     // 채팅을 받을 세션들의 리스트
-    private final List<WebSocketSession> chatReceiver = new LinkedList<>();
+    private final List<WebSocketSession> chatReceivers = new LinkedList<>();
 
     // JSON parser
     private static final JSONParser parser = new JSONParser();
@@ -158,8 +158,9 @@ public class WebSocketHandler extends TextWebSocketHandler
             if(list.isEmpty()) clientStorage.remove(getUserName(session));
         }
 
-        if(userListReceiver.contains(session)) userListReceiver.remove(session);
-        if(chatReceiver.contains(session)) chatReceiver.remove(session);
+        // 구독 목록에서도 빼줘야 함.
+        if(userListReceivers.contains(session)) userListReceivers.remove(session);
+        if(chatReceivers.contains(session)) chatReceivers.remove(session);
 
     }
 
@@ -172,8 +173,8 @@ public class WebSocketHandler extends TextWebSocketHandler
     {
         System.out.println(sessionList);
         System.out.println(request.toJSONString());
-        if(request.get("target").equals("userList")) userListReceiver.add(session);
-        if(request.get("target").equals("chat")) chatReceiver.add(session);
+        if(request.get("target").equals("userList")) userListReceivers.add(session);
+        if(request.get("target").equals("chat")) chatReceivers.add(session);
 
     }
 
@@ -193,7 +194,7 @@ public class WebSocketHandler extends TextWebSocketHandler
         String jsonString =  new JSONObject(m).toJSONString(); 
 
         // 모든 클라이언트에게 보내준다.
-        for(WebSocketSession s : chatReceiver)
+        for(WebSocketSession s : chatReceivers)
         {
             try{
                 s.sendMessage(new TextMessage(jsonString)); 
@@ -228,12 +229,12 @@ public class WebSocketHandler extends TextWebSocketHandler
     //// Scheduled ////
     ///////////////////
 
-    // 유저 정보를 송신해줌. (주기적으로 송신해야하는 )
+    // 유저 정보를 송신해줌.
     @Scheduled(fixedDelay=500)
     public void sendUsers()
     {
         String json = authenticUserList().toString();
-        userListReceiver.forEach(v -> {
+        userListReceivers.forEach(v -> {
             try {
                 v.sendMessage(new TextMessage(json));
 
@@ -244,9 +245,9 @@ public class WebSocketHandler extends TextWebSocketHandler
         });
     }
 
-    /////////////////////
-    //////// etc ////////
-    /////////////////////
+    ///////////////////
+    /////// etc ///////
+    ///////////////////
     String getUserName(WebSocketSession session)
     {
         try{

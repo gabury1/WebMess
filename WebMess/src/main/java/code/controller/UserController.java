@@ -1,6 +1,7 @@
 package code.controller;
 
 import code.dto.SignUpDto;
+import code.dto.UserDto;
 import code.services.UserService;
 import lombok.RequiredArgsConstructor;
 
@@ -23,6 +24,10 @@ public class UserController
     @Autowired
     UserService userService;
 
+    /////////////////////
+    ////// Request //////
+    /////////////////////
+
     @RequestMapping("/signup")
     public String signup()
     {
@@ -36,6 +41,16 @@ public class UserController
         return "/user/detail";
     }
 
+
+
+    /////////////////////////
+    ////////// API //////////
+    /////////////////////////
+
+
+    // USER
+
+    // Create
     @PostMapping("/")
     @ResponseBody
     public String create(@Validated SignUpDto newUser, BindingResult error)
@@ -53,7 +68,6 @@ public class UserController
     public void read(@Param("userNo") Long userNo, HttpServletResponse response)
     {
         try{
-
             response.setCharacterEncoding("UTF-8");
             response.setContentType("application/json");
             response.getWriter().print(userService.getUserDetail(userNo));
@@ -62,7 +76,44 @@ public class UserController
         {
             
         }
+    }
+
+    // Update
+
+    // Delete
+
+
+    // USER RELATION
+
+    // Create+Delete
+    @PostMapping("/relation")
+    @ResponseBody
+    public String createRelation(@Param("subNo") Long subNo)
+    {
+        try{
+            Long nowUserNo = userService
+            .getNowUser()
+            .map(u -> u.getNo())
+            .orElseThrow(() -> new Exception("유저를 찾을 수 없습니다."));
+
+            // 관계를 생성했다면 okFriend, 삭제했다면 notFriend
+            // 외에는 오류 메시지
+            return userService.handleRelation(nowUserNo, subNo);
+
+        }catch(Exception e){return e.getLocalizedMessage();}
+
+    }
+
+    // Read (현재 유저와의 관계를 검색)
+    @GetMapping("/relation")
+    @ResponseBody
+    public String getRelation(@Param("subNo") Long subNo)
+    {
+        // 만약 요청한 유저가 익명이라면 그냥 -1(있을 수 없는 유저번호) 넣어서 false 반환해줘라.
+        Long mainNo = userService.getNowUser().map(u -> u.getNo()).orElse(-1L);
         
+        // 맞다면 true, 틀리다면 false
+        return userService.isMyFriend(mainNo, subNo);
     }
 
 }
