@@ -3,6 +3,7 @@ package code.dto;
 import java.util.LinkedList;
 import java.util.List;
 
+import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 
 import code.domain.user.UserEntity;
@@ -36,5 +37,20 @@ public class WebSocketClient
     // 현재 친구들
     List<String> friends;
     // 내가 속한 방들
+
+    public void sendToClient(String message)
+    {
+        TextMessage msg = new TextMessage(message);
+
+        sessions.forEach(s ->{
+            try{
+                s.sendMessage(msg);
+            } catch(Exception e)
+            {
+                System.out.println(e.getLocalizedMessage());
+            }
+        });
+
+    }
 
 }

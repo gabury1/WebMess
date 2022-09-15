@@ -104,6 +104,7 @@ public class WebSocketHandler extends TextWebSocketHandler
             attr.put("no", client.getNo());
             attr.put("name", client.getName());
             attr.put("colorCode", client.getColorCode());
+            attr.put("client", client);
             
         }
 
@@ -118,20 +119,26 @@ public class WebSocketHandler extends TextWebSocketHandler
 
             JSONObject json = (JSONObject)parser.parse(textMessage.getPayload());
 
-            if(json.get("purpose").equals("subscribe"))
+            String purpose = (String) json.get("purpose");
+            if(purpose.equals("subscribe"))
             {
                 // 어떤 정보를 수신하겠다는 선언
                 subscribe(session, json);
             }
-            else if(json.get("purpose").equals("chat"))
+            else if(purpose.equals("chat"))
             {
                 // 전체 채팅
                 allChat(session, json);
             }
-            else if(json.get("purpose").equals("status"))
+            else if(purpose.equals("status"))
             {
                 // 특정 유저의 온라인/오프라인 상태를 체크
-                getStatus(session, json);
+                sendStatus(session, json);
+            }
+            else if(purpose.equals("friend"))
+            {
+                // 친구 추가/삭제
+                handleFriend(session, json);
             }
 
         }
@@ -171,8 +178,6 @@ public class WebSocketHandler extends TextWebSocketHandler
     // 특정 정보를 수신하겠다는 선언
     public void subscribe(WebSocketSession session, JSONObject request)
     {
-        System.out.println(sessionList);
-        System.out.println(request.toJSONString());
         if(request.get("target").equals("userList")) userListReceivers.add(session);
         if(request.get("target").equals("chat")) chatReceivers.add(session);
 
@@ -205,7 +210,7 @@ public class WebSocketHandler extends TextWebSocketHandler
     }
 
     // 유저가 온라인인가 오프라인인가??
-    public void getStatus(WebSocketSession session, JSONObject request)
+    public void sendStatus(WebSocketSession session, JSONObject request)
     {
         HashMap<String, Object> status = new HashMap<>();
 
@@ -213,7 +218,7 @@ public class WebSocketHandler extends TextWebSocketHandler
         status.put("user", request.get("target"));
 
         // 만약 클라이언트 리스트에 유저명이 있다면 online, 아니면 offline
-        if(clientStorage.keySet().contains(request.get("target"))) status.put("now", "online");
+        if(isOnline((String)request.get("target"))) status.put("now", "online");
         else status.put("now", "offline");
 
         String jsonString = new JSONObject(status).toJSONString();
@@ -223,6 +228,28 @@ public class WebSocketHandler extends TextWebSocketHandler
         } catch(Exception e) {System.out.println(e.getLocalizedMessage());}
         
     }
+
+    // 친구 추가/삭제 요청
+    public void handleFriend(WebSocketSession session, JSONObject request)
+    {
+        // 클라이언트 받아오기
+        WebSocketClient client = (WebSocketClient)session.getAttributes().get("client");
+        List<String> friends = client.getFriends();
+
+        if(request.get("method").equals("add"))
+        {
+            // 친구명 목록에 이름을 추가해준다.
+            friends.add((String) request.get("name"));
+            
+        }
+        else if(request.get("method").equals("delete"))
+        {
+            // 친구명 목록에서 이름을 삭제해준다.
+            friends.add((String) request.get("name"));
+        }
+
+    }
+
 
 
     ///////////////////
@@ -287,5 +314,40 @@ public class WebSocketHandler extends TextWebSocketHandler
         return new JSONObject(userList);
     }
 
+    // 인증된 유저의 친구 목록을 반환해준다.
+    JSONObject friendList(WebSocketClient client)
+    {
+        HashMap<String, Object> list = new HashMap<>();
+        List<String> friends = client.getFriends();
+
+        // 유저리스트를 담을 배열
+        ArrayList<JSONObject> array = new ArrayList<>();
+        for(String s : friends)
+        {
+            WebSocketClient friend = clientStorage.get(s);
+
+            // 유저 정보를 담을 해쉬맵
+            HashMap<String, Object> info = new HashMap<>();
+
+            info.put("no", friend.getNo());
+            info.put("name", friend.getName());
+            info.put("color", friend.getColorCode());
+            info.put("isOnline", isOnline(s));
+
+            array.add(new JSONObject(info));
+        }
+
+        list.put("purpose", "userList");
+        list.put("userCnt", sessionList.size());
+        list.put("users", array);
+
+        return new JSONObject(list);
+    }
+
+    Boolean isOnline(String name)
+    {
+        if(clientStorage.keySet().contains(name)) return true;
+        else return false;
+    }
 
 }

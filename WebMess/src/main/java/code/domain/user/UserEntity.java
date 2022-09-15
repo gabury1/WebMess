@@ -51,17 +51,16 @@ public class UserEntity
     @OneToMany(fetch = FetchType.LAZY)
     List<RoomEntity> rooms2; // 멤버2로 들어가있는 방
 
-    @JoinColumn(name="message")
+    @JoinColumn(name="message_no")
     @OneToMany(fetch = FetchType.LAZY)
     List<MessageEntity> messages; // 보냈던 메시지
 
-
-    @JoinColumn(name="main")
-    @OneToMany(fetch = FetchType.EAGER)
+    @JoinColumn(name = "main_no")
+    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     List<UserRelationEntity> main; // 본인이 등록한 친구 관계
 
-    @JoinColumn(name="sub")
-    @OneToMany(fetch = FetchType.LAZY)
+    @JoinColumn(name = "sub_no")
+    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     List<UserRelationEntity> sub; // 다른 사람이 본인을 친구로 등록한 관계
 
     public WebSocketClient toWebSocketClient()
@@ -72,7 +71,8 @@ public class UserEntity
         if(main != null)
         {   
             main.forEach((r)->{
-                friends.add(r.sub.getName()); 
+                UserEntity friend = r.getSub();
+                friends.add(friend.getName());
             });
         }
 

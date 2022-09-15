@@ -104,6 +104,7 @@ public class UserService {
 
             // 이미 관계가 있다면 삭제, 없다면 생성
             Optional<UserRelationEntity> optional = userRelationRepository.findByMainNoAndSubNo(mainNo, subNo);
+            
             if(optional.isPresent())
             {
                 userRelationRepository.delete(optional.get());
@@ -123,7 +124,8 @@ public class UserService {
         }
         catch(Exception e)
         {
-            return e.getLocalizedMessage();
+            System.out.println(e.getLocalizedMessage()) ;
+            return "fail";
         }
 
     }
