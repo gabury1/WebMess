@@ -67,7 +67,7 @@ public class UserEntity
     {
         
         List<String> friends = new ArrayList<>();
-        
+
         if(main != null)
         {   
             main.forEach((r)->{

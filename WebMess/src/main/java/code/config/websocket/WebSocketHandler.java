@@ -58,6 +58,8 @@ public class WebSocketHandler extends TextWebSocketHandler
     private final List<WebSocketSession> userListReceivers = new LinkedList<>();
     // 채팅을 받을 세션들의 리스트
     private final List<WebSocketSession> chatReceivers = new LinkedList<>();
+    // 친구 리스트를 받을 세션들의 리스트
+    private final List<WebSocketSession> friendListReceivers = new LinkedList<>();
 
     // JSON parser
     private static final JSONParser parser = new JSONParser();
@@ -168,6 +170,7 @@ public class WebSocketHandler extends TextWebSocketHandler
         // 구독 목록에서도 빼줘야 함.
         if(userListReceivers.contains(session)) userListReceivers.remove(session);
         if(chatReceivers.contains(session)) chatReceivers.remove(session);
+        if(friendListReceivers.contains(session)) friendListReceivers.remove(session);
 
     }
 
@@ -180,6 +183,7 @@ public class WebSocketHandler extends TextWebSocketHandler
     {
         if(request.get("target").equals("userList")) userListReceivers.add(session);
         if(request.get("target").equals("chat")) chatReceivers.add(session);
+        if(request.get("target").equals("friendList")) friendListReceivers.add(session);
 
     }
 
@@ -229,7 +233,7 @@ public class WebSocketHandler extends TextWebSocketHandler
         
     }
 
-    // 친구 추가/삭제 요청
+    // 친구 추가/삭제 반영(우선 DB에 저장 후, 성공했다면 친구리스트에 넣어준다.)
     public void handleFriend(WebSocketSession session, JSONObject request)
     {
         // 클라이언트 받아오기
@@ -250,8 +254,6 @@ public class WebSocketHandler extends TextWebSocketHandler
 
     }
 
-
-
     ///////////////////
     //// Scheduled ////
     ///////////////////
@@ -265,6 +267,17 @@ public class WebSocketHandler extends TextWebSocketHandler
             try {
                 v.sendMessage(new TextMessage(json));
 
+            } catch (IOException e) {
+                
+                e.printStackTrace();
+            }
+        });
+
+        friendListReceivers.forEach(v -> {
+            try {
+
+                String jsonString = friendList((WebSocketClient)v.getAttributes().get("client")).toJSONString();
+                v.sendMessage(new TextMessage(jsonString));
             } catch (IOException e) {
                 
                 e.printStackTrace();
@@ -321,7 +334,9 @@ public class WebSocketHandler extends TextWebSocketHandler
         List<String> friends = client.getFriends();
 
         // 유저리스트를 담을 배열
-        ArrayList<JSONObject> array = new ArrayList<>();
+        ArrayList<JSONObject> online = new ArrayList<>();
+        ArrayList<JSONObject> offLine = new ArrayList<>();
+
         for(String s : friends)
         {
             WebSocketClient friend = clientStorage.get(s);
@@ -329,23 +344,23 @@ public class WebSocketHandler extends TextWebSocketHandler
             // 유저 정보를 담을 해쉬맵
             HashMap<String, Object> info = new HashMap<>();
 
-            info.put("no", friend.getNo());
-            info.put("name", friend.getName());
-            info.put("color", friend.getColorCode());
-            info.put("isOnline", isOnline(s));
+            //info.put("no", friend.getNo());
+            //info.put("name", friend.getName());
+            //info.put("color", friend.getColorCode());
+            //info.put("isOnline", isOnline(s));
 
-            array.add(new JSONObject(info));
+            online.add(new JSONObject(info));
         }
 
-        list.put("purpose", "userList");
-        list.put("userCnt", sessionList.size());
-        list.put("users", array);
+        list.put("purpose", "friendList");
+        list.put("friendCnt", friends.size());
+        list.put("friends", online);
 
         return new JSONObject(list);
     }
 
     Boolean isOnline(String name)
-    {
+    {   
         if(clientStorage.keySet().contains(name)) return true;
         else return false;
     }

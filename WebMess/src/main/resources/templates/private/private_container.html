@@ -11,6 +11,11 @@
         crossorigin="anonymous"
         referrerpolicy="no-referrer"></script>
 
+        <!--SockJS-->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js"
+                integrity="sha512-1QvjE7BtotQjkq8PxLeF6P46gEpBRXuskzIVgjFpekzFVF4yjRgrQvTG1MTOJ3yQgvTteKAcO7DSZI92+u/yZw=="
+                crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+
         <link rel="stylesheet" type="text/css" href="/css/private/private.css">
         <link rel="stylesheet" type="text/css" href="/css/private/friend.css">
 
@@ -32,7 +37,38 @@
 
     </div>
 
-    <script src="/js/private.js"></script>
+    <script src="/js/private/private.js"></script>
+    <script>
+
+            let socket = new SockJS("/room");
+            socket.onopen = () => 
+            {
+                console.log("Info : connection opened");
+
+                // 유저리스트를 수신하겠다는 선언
+                var subscribe = {
+                    purpose : "subscribe",
+                    target : "userList"
+                };
+                socket.send(JSON.stringify(subscribe));
+
+                // 채팅을 수신하겠다는 선언
+                subscribe = {
+                    purpose : "subscribe",
+                    target : "friendList"
+                };
+                socket.send(JSON.stringify(subscribe));
+            };
+            socket.onmessage = msgEvent;
+            socket.onclose = () => console.log("Info : connection closed");
+            socket.onerror = err => console.log(err);
+
+            function msgEvent(message)
+            {
+                console.log(message.data);
+            }
+
+    </script>
 
     </body>
 

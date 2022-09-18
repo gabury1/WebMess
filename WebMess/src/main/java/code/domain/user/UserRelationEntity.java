@@ -22,7 +22,7 @@ public class UserRelationEntity
     UserEntity main; // 누가
 
     @JoinColumn(name="sub_no")
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     UserEntity sub; // 누구를
 
 }

@@ -4,6 +4,7 @@ import code.domain.user.UserEntity;
 import lombok.*;
 import net.bytebuddy.utility.nullability.NeverNull;
 import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
 
@@ -14,9 +15,10 @@ import javax.persistence.*;
 @ToString @EqualsAndHashCode
 public class RoomEntity
 {
-    @Id @Column(name = "room_no")
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    Long roomNo;
+    @Id @Column(name = "room_id")
+    @GeneratedValue(generator = "uuid")
+    @GenericGenerator(name = "uuid", strategy = "uuid")
+    Long roomId;
 
     @JoinColumn(name="member1")
     @ManyToOne(fetch = FetchType.LAZY)

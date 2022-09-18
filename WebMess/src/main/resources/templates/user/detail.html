@@ -112,7 +112,7 @@
             };
             socket.onmessage = msgEvent;
             socket.onclose = () => console.log("Info : connection closed");
-            socket.onerror = err => console.log(err);
+            socket.onerror = err => console.log(err);   
 
             function msgEvent(message)
             {
@@ -156,8 +156,6 @@
                     }
 
                 }
-
-
 
             }
 

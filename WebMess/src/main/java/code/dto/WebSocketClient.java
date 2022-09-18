@@ -22,6 +22,15 @@ import lombok.ToString;
 
 public class WebSocketClient 
 {
+    @Getter @Setter
+    public class friend{
+        Long no;
+        String name;
+        String email;
+        String colorCode;
+        String colorNmae;
+        String introduce;
+    }
 
     Long no;
     String name;
