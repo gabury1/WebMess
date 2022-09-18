@@ -2,7 +2,6 @@ package code.dto;
 
 import java.util.LinkedList;
 import java.util.List;
-
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 
@@ -22,16 +21,6 @@ import lombok.ToString;
 
 public class WebSocketClient 
 {
-    @Getter @Setter
-    public class friend{
-        Long no;
-        String name;
-        String email;
-        String colorCode;
-        String colorNmae;
-        String introduce;
-    }
-
     Long no;
     String name;
     String email;
@@ -44,7 +33,7 @@ public class WebSocketClient
     List<WebSocketSession> sessions;
     
     // 현재 친구들
-    List<String> friends;
+    List<Friend> friends = new LinkedList<>();
     // 내가 속한 방들
 
     public void sendToClient(String message)

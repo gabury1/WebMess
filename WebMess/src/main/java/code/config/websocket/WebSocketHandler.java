@@ -2,6 +2,7 @@ package code.config.websocket;
 
 import code.domain.user.UserEntity;
 import code.domain.user.UserRepository;
+import code.dto.Friend;
 import code.dto.UserDto;
 import code.dto.WebSocketClient;
 import code.services.UserService;
@@ -137,8 +138,8 @@ public class WebSocketHandler extends TextWebSocketHandler
                 // 특정 유저의 온라인/오프라인 상태를 체크
                 sendStatus(session, json);
             }
-            else if(purpose.equals("friend"))
-            {
+            else if(purpose.equals("friendHandle"))
+            {   
                 // 친구 추가/삭제
                 handleFriend(session, json);
             }
@@ -235,21 +236,33 @@ public class WebSocketHandler extends TextWebSocketHandler
 
     // 친구 추가/삭제 반영(우선 DB에 저장 후, 성공했다면 친구리스트에 넣어준다.)
     public void handleFriend(WebSocketSession session, JSONObject request)
-    {
+    {   
         // 클라이언트 받아오기
         WebSocketClient client = (WebSocketClient)session.getAttributes().get("client");
-        List<String> friends = client.getFriends();
+        List<Friend> friends = client.getFriends();
+        
+        // DB에서 가져온다.
+        Friend friend = userRepository.findByName((String) request.get("name")).get().toFriend();
 
         if(request.get("method").equals("add"))
         {
             // 친구명 목록에 이름을 추가해준다.
-            friends.add((String) request.get("name"));
+            friends.add(friend);
             
         }
         else if(request.get("method").equals("delete"))
         {
-            // 친구명 목록에서 이름을 삭제해준다.
-            friends.add((String) request.get("name"));
+                // 친구명 목록에서 이름을 삭제해준다.
+                try
+                {                
+                    Friend target = friends.stream()
+                                        .filter(f -> friend.getName().equals(f.getName()))
+                                        .findFirst().orElseThrow(()-> new Exception("친구 삭제 실패"));
+
+                    friends.remove(target);
+
+                }catch(Exception e){System.out.println(e.getMessage());}
+
         }
 
     }
@@ -276,7 +289,7 @@ public class WebSocketHandler extends TextWebSocketHandler
         friendListReceivers.forEach(v -> {
             try {
 
-                String jsonString = friendList((WebSocketClient)v.getAttributes().get("client")).toJSONString();
+                String jsonString = friendList((WebSocketClient) v.getAttributes().get("client")).toJSONString();
                 v.sendMessage(new TextMessage(jsonString));
             } catch (IOException e) {
                 
@@ -331,30 +344,30 @@ public class WebSocketHandler extends TextWebSocketHandler
     JSONObject friendList(WebSocketClient client)
     {
         HashMap<String, Object> list = new HashMap<>();
-        List<String> friends = client.getFriends();
+        List<Friend> friends = client.getFriends();
 
         // 유저리스트를 담을 배열
         ArrayList<JSONObject> online = new ArrayList<>();
-        ArrayList<JSONObject> offLine = new ArrayList<>();
+        ArrayList<JSONObject> offline = new ArrayList<>();
 
-        for(String s : friends)
+        for(Friend f : friends)
         {
-            WebSocketClient friend = clientStorage.get(s);
-
             // 유저 정보를 담을 해쉬맵
             HashMap<String, Object> info = new HashMap<>();
 
-            //info.put("no", friend.getNo());
-            //info.put("name", friend.getName());
-            //info.put("color", friend.getColorCode());
-            //info.put("isOnline", isOnline(s));
+            info.put("no", f.getNo());
+            info.put("name", f.getName());
+            info.put("color", f.getColorCode());
 
-            online.add(new JSONObject(info));
+            if(isOnline(f.getName())) online.add(new JSONObject(info));
+            else offline.add(new JSONObject(info));
+            
         }
 
         list.put("purpose", "friendList");
         list.put("friendCnt", friends.size());
-        list.put("friends", online);
+        list.put("onlineFriend", online);
+        list.put("offlineFriend", offline);
 
         return new JSONObject(list);
     }

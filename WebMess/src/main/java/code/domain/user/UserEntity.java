@@ -2,6 +2,7 @@ package code.domain.user;
 
 import code.domain.message.MessageEntity;
 import code.domain.room.RoomEntity;
+import code.dto.Friend;
 import code.dto.WebSocketClient;
 import lombok.*;
 
@@ -63,16 +64,31 @@ public class UserEntity
     @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     List<UserRelationEntity> sub; // 다른 사람이 본인을 친구로 등록한 관계
 
+    public Friend toFriend()
+    {
+        return  Friend.builder()
+        .no(getUserNo())
+        .name(getName())
+        .colorCode(getColorCode())
+        .colorName(getColorName())
+        .email(getEmail())
+        .introduce(getIntroduce())
+        .build();
+
+    }
+
     public WebSocketClient toWebSocketClient()
     {
         
-        List<String> friends = new ArrayList<>();
+        List<Friend> friends = new ArrayList<>();
 
         if(main != null)
         {   
             main.forEach((r)->{
-                UserEntity friend = r.getSub();
-                friends.add(friend.getName());
+                UserEntity sub = r.getSub();
+                Friend f = sub.toFriend();
+
+                friends.add(f);
             });
         }
 

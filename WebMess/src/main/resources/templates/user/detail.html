@@ -167,8 +167,28 @@
                     method : "POST",
                     success : (message) => {
                         console.log("requestFriend Result : " + message);
-                        if(message == "okFriend") $("#friendButton").html("친구가 되었습니다!");
-                        else if(message == "notFriend") $("#friendButton").html("더 이상 친구가 아닙니다..");
+                        if(message == "okFriend")
+                        { 
+                            var json = {
+                                purpose : "friendHandle",
+                                method : "add",
+                                name : name
+                            };
+                            
+                            socket.send(JSON.stringify(json));
+                            $("#friendButton").html("친구가 되었습니다!");    
+                        }
+                        else if(message == "notFriend") 
+                        {
+                            var json = {
+                                purpose : "friendHandle",
+                                method : "delete",
+                                name : name
+                            };
+
+                            socket.send(JSON.stringify(json));
+                            $("#friendButton").html("더 이상 친구가 아닙니다..");
+                        }
                         else alert(message);
                     
                     },

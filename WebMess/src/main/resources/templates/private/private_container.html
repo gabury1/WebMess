@@ -45,14 +45,14 @@
             {
                 console.log("Info : connection opened");
 
-                // 유저리스트를 수신하겠다는 선언
+                // 인증된 유저 리스트를 수신하겠다는 선언
                 var subscribe = {
                     purpose : "subscribe",
                     target : "userList"
                 };
-                socket.send(JSON.stringify(subscribe));
+                //socket.send(JSON.stringify(subscribe));
 
-                // 채팅을 수신하겠다는 선언
+                // 내 친구리스트 수신하겠다는 선언
                 subscribe = {
                     purpose : "subscribe",
                     target : "friendList"
@@ -65,7 +65,8 @@
 
             function msgEvent(message)
             {
-                console.log(message.data);
+                var data = message.data;
+                console.log(data);
             }
 
     </script>
