@@ -18,6 +18,7 @@ import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.http.server.ServletServerHttpRequest;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.messaging.AbstractSubProtocolEvent;
 import org.springframework.web.socket.messaging.SessionConnectEvent;
@@ -25,15 +26,21 @@ import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 import org.springframework.web.socket.server.support.HttpSessionHandshakeInterceptor;
 
 import code.domain.user.UserEntity;
+import code.domain.user.UserRelationRepository;
 import code.domain.user.UserRepository;
+import code.dto.Friend;
 import code.dto.StompClient;
 import code.dto.UserDto;
 import code.services.UserService;
 
-public class HandShaker extends HttpSessionHandshakeInterceptor
+@Component
+public class SessionStorage
 {
     @Autowired
     UserRepository userRepository;
+    @Autowired
+    UserRelationRepository userRelationRepository;
+
     @Autowired
     UserService userService;
 
@@ -42,23 +49,11 @@ public class HandShaker extends HttpSessionHandshakeInterceptor
     // 세션ID 저장
     final List<String> sessionIdList = new LinkedList<>();
 
-    @Override
-    public boolean beforeHandshake(ServerHttpRequest request, ServerHttpResponse response, WebSocketHandler wsHandler, 
-                                    Map<String, Object> attributes) throws Exception 
-    {
-        
-        if (request instanceof ServletServerHttpRequest) 
-        {
-            ServletServerHttpRequest servletRequest = (ServletServerHttpRequest) request;
-            HttpSession session = servletRequest.getServletRequest().getSession(false);
+    ////////////////////////////
+    ////// Session Manage //////
+    ////////////////////////////
 
-            if (session != null) {
-                attributes.put("HTTPSESSIONID", session.getId());
-            }
-        }
-        return true;
-    }
-
+    // 연결 성사 시에 호출되는 매서드
     @EventListener
     public void onConnection(SessionConnectEvent event)
     {
@@ -116,6 +111,10 @@ public class HandShaker extends HttpSessionHandshakeInterceptor
         
     }
 
+    /////////////////////////////////
+    /////////// User Data ///////////
+    /////////////////////////////////
+
     // 인증된 유저들의 목록과 숫자를 반환해준다.
     public JSONObject authenticUserList()
     {
@@ -142,5 +141,48 @@ public class HandShaker extends HttpSessionHandshakeInterceptor
         return new JSONObject(userList);
     }
 
+    // 친구 추가
+    public void addFriend(String main, String sub)
+    {
+        // 클라이언트 받아오기
+        StompClient client = clientMap.get(main);
+        List<Friend> friends = client.getFriends();
+        
+        // DB에서 친구 정보를 가져온다. 
+        Friend friend = userRepository.findByName(sub).get().toFriend();
+        friends.add(friend);
 
+    }
+
+    
+    // 친구 삭제
+    public void removeFriend(String main, String sub)
+    {
+        // 클라이언트 받아오기
+        StompClient client = clientMap.get(main);
+        List<Friend> friends = client.getFriends();
+        
+        // DB에서 친구 정보를 가져온다. 
+        Friend friend = userRepository.findByName(sub).get().toFriend();
+
+         // 친구명 목록에서 이름을 삭제해준다.
+         try
+         {                
+             Friend target = friends.stream()
+                                 .filter(f -> friend.getName().equals(f.getName()))
+                                 .findFirst().orElseThrow(()-> new Exception("친구 삭제 실패"));
+        
+             friends.remove(target);
+        
+         }catch(Exception e){System.out.println(e.getMessage());}
+
+
+    }
+
+    // 유저가 현재 온라인 상태인가?
+    public Boolean isOnline(String name)
+    {   
+        if(clientMap.keySet().contains(name)) return true;
+        else return false;
+    }
 }

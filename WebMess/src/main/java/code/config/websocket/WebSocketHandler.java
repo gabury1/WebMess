@@ -234,7 +234,7 @@ public class WebSocketHandler extends TextWebSocketHandler
         
     }
 
-    // 친구 추가/삭제 반영(우선 DB에 저장 후, 성공했다면 친구리스트에 넣어준다.)
+    // 친구 추가/삭제 반영(DB에 반영되어있다. 친구리스트에 넣어준다.)
     public void handleFriend(WebSocketSession session, JSONObject request)
     {   
         // 클라이언트 받아오기

@@ -12,7 +12,7 @@ import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.annotation.SendToUser;
 import org.springframework.stereotype.Controller;
 
-import code.config.stomp.HandShaker;
+import code.config.stomp.SessionStorage;
 import code.dto.UserDto;
 import code.services.UserService;
 
@@ -24,7 +24,7 @@ public class ChatController
     //////////////////////////////////
 
     @Autowired
-    HandShaker sessionStorage;
+    SessionStorage sessionStorage;
     @Autowired
     UserService userService;
 

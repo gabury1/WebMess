@@ -16,6 +16,12 @@
         <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js"
                 integrity="sha512-1QvjE7BtotQjkq8PxLeF6P46gEpBRXuskzIVgjFpekzFVF4yjRgrQvTG1MTOJ3yQgvTteKAcO7DSZI92+u/yZw=="
                 crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+        <!-- StompJS -->
+        <script
+        src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"
+        integrity="sha512-iKDtgDyTHjAitUDdLljGhenhPwrbBfqTKWO1mkhSFH3A7blITC9MhYon6SjnMhp4o0rADGw9yAC6EW4t5a4K3g=="
+        crossorigin="anonymous"
+        referrerpolicy="no-referrer"></script> 
 
     </head>
     <body>
@@ -91,34 +97,33 @@
                 error : (e) => {alert(e.responseText);}
             })
 
-            let socket = new SockJS("/room");
-            socket.onopen = () => {
-                console.log("Info : connection opened");
+            let sock = new SockJS("/ws");
+            let stomp = Stomp.over(sock);
+            stomp.connect({}, (msg) => {
+                
+                stomp.subscribe("/user/sub/status", (json) => {
+                    
+                    if(json.body == "true")
+                    {
+                        $("#status").css("background", "lime");
+                            $("#status").html("ONLINE");
+                            return;
+                    }
+                    else
+                    {
+                        $("#status").css("background", "red");
+                            $("#status").html("OFFLINE");
+                            return;
+                    }
 
-                // 이 유저의 상태를 받아온다.
-                var request = {
-                    purpose : "status",
-                    target : name
-                };
-                socket.send(JSON.stringify(request));
 
-                // 유저리스트를 수신하겠다는 선언
-                var subscribe = {
-                    purpose : "subscribe",
-                    target : "userList"
-                };
-                socket.send(JSON.stringify(subscribe));
 
-            };
-            socket.onmessage = msgEvent;
-            socket.onclose = () => console.log("Info : connection closed");
-            socket.onerror = err => console.log(err);   
+                });
 
-            function msgEvent(message)
-            {
-                var data = JSON.parse(message.data);
-                if(data.purpose == "userList")
-                {
+                stomp.subscribe("/sub/userList", (json) => {
+
+                    var data = JSON.parse(json.body);
+
                     var flag = false;
                     data.users.forEach((u)=>{
 
@@ -139,25 +144,12 @@
                         $("#status").html("OFFLINE");
                     }
 
-                }
-                else if(data.purpose == "status")
-                {
-                    if(data.now == "online")
-                    {
-                        $("#status").css("background", "lime");
-                            $("#status").html("ONLINE");
-                            return;
-                    }
-                    else
-                    {
-                        $("#status").css("background", "red");
-                            $("#status").html("OFFLINE");
-                            return;
-                    }
 
-                }
+                });
 
-            }
+                stomp.send("/pub/status", {}, name);
+
+            });
 
             function requestFriend()
             {
@@ -169,24 +161,22 @@
                         console.log("requestFriend Result : " + message);
                         if(message == "okFriend")
                         { 
-                            var json = {
-                                purpose : "friendHandle",
+                            var data = {
                                 method : "add",
                                 name : name
                             };
-                            
-                            socket.send(JSON.stringify(json));
+
+                            stomp.send("/pub/friend", {}, JSON.stringify(data));
                             $("#friendButton").html("친구가 되었습니다!");    
                         }
                         else if(message == "notFriend") 
                         {
-                            var json = {
-                                purpose : "friendHandle",
+                            var data = {
                                 method : "delete",
                                 name : name
                             };
 
-                            socket.send(JSON.stringify(json));
+                            stomp.send("/pub/friend", {}, JSON.stringify(data));
                             $("#friendButton").html("더 이상 친구가 아닙니다..");
                         }
                         else alert(message);

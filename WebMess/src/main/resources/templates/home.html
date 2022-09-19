@@ -112,39 +112,6 @@
                     
                 });
 
-            let socket = new SockJS("/room");
-            socket.onopen = () => 
-            {
-                console.log("Info : connection opened");
-
-                // 유저리스트를 수신하겠다는 선언
-                var subscribe = {
-                    purpose : "subscribe",
-                    target : "userList"
-                };
-                socket.send(JSON.stringify(subscribe));
-
-            };
-            socket.onmessage = msgEvent;
-            socket.onclose = () => console.log("Info : connection closed");
-            socket.onerror = err => console.log(err);
-
-            function msgEvent(message) {
-                console.log("message : " + message.data);
-                let data = JSON.parse(message.data);
-
-                if (data.purpose == "userList") { // 유저 리스트가 왔을때
- 
-                }
-                else if(data.purpose == "chat")
-                {
-                    var html = "";
-                    html += '<label style="color:' + data.color + '">' + data.sender + '</label> : ' + data.content + '<br>';
-                    $("#chat").append(html);
-                    document.getElementById("chat").scrollTop = document.getElementById("chat").scrollHeight;
-
-                }
-            }
 
             function keyDownEvent(e)
             {
@@ -158,11 +125,6 @@
             {
                 var str = $("#txt_send").val();
                 if(str == "") return;
-
-                var message = {
-                    purpose : "chat",
-                    content : str
-                };
 
                 stomp.send("/pub/allChat", {}, str);
                 $("#txt_send").val("");

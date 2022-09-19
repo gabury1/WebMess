@@ -14,4 +14,8 @@ public interface UserRelationRepository extends JpaRepository<UserRelationEntity
     @Query(value="SELECT * FROM user_relation WHERE main_no=:mainNo and sub_no=:subNo", nativeQuery=true)
     Optional<UserRelationEntity> findByMainNoAndSubNo(@Param("mainNo") Long mainNo, @Param("subNo") Long subNo);
 
+    @Query(value="SELECT * FROM user_relation WHERE main_name=:mainName and sub_name=:subName", nativeQuery=true)
+    Optional<UserRelationEntity> findByMainNameAndSubName(@Param("mainName") String mainName, @Param("subName") String subName);
+
+
 }
