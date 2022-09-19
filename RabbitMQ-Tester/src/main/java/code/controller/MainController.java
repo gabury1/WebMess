@@ -10,15 +10,20 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.util.HtmlUtils;
 
 @Controller
-@Log4j2
 public class MainController
 {
 
     @GetMapping("/chat")
     public String chatGET(){
 
-        log.info("@ChatController, chat GET()");
-
         return "chat";
     }
+
+    @RequestMapping("/test")
+    public String test()
+    {
+
+        return "STOMPtest";
+    }
+
 }

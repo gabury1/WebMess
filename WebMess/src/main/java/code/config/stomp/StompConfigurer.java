@@ -1,5 +1,6 @@
 package code.config.stomp;
 
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
@@ -28,8 +29,15 @@ public class StompConfigurer implements WebSocketMessageBrokerConfigurer
                 .addEndpoint("/ws")
                 .setAllowedOrigins("http://localhost:8080")
                 .withSockJS()
-                //.setInterceptors(sessionHandshakeInterceptor());
+                .setInterceptors(handShakeHandler());
                 ;
+    }
+
+    @Bean
+    public HandShaker handShakeHandler()
+    {
+        
+        return new HandShaker();
     }
 
 }

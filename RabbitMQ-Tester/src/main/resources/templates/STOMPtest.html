@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <!-- JQuery -->
+        <script
+        src="https://code.jquery.com/jquery-3.6.0.js"
+        integrity="sha256-H+K7U5CnXl1h5ywQfKtSj8PCmoN9aaq30gDh27Xc0jk="
+        crossorigin="anonymous">
+        </script>
+        <!-- SockJS -->
+        <script
+        src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js"
+        integrity="sha512-1QvjE7BtotQjkq8PxLeF6P46gEpBRXuskzIVgjFpekzFVF4yjRgrQvTG1MTOJ3yQgvTteKAcO7DSZI92+u/yZw=="
+        crossorigin="anonymous"
+        referrerpolicy="no-referrer"></script>
+
+        <!-- StompJS -->
+        <script
+        src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"
+        integrity="sha512-iKDtgDyTHjAitUDdLljGhenhPwrbBfqTKWO1mkhSFH3A7blITC9MhYon6SjnMhp4o0rADGw9yAC6EW4t5a4K3g=="
+        crossorigin="anonymous"
+        referrerpolicy="no-referrer"></script>    
+
+
+    </head>
+    <body>
+
+        <div>
+
+
+        </div>
+
+        <script>
+
+            let sock = new SockJS("/ws");
+            let stomp = Stomp.over(sock);
+
+            stomp.connect({}, msg => {
+                stomp.subscribe("/sub/test", (data) => {
+
+                    console.log(data);
+                });
+
+            });
+
+        </script>
+
+    </body>
+
+</html>

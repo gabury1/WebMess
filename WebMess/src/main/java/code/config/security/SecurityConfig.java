@@ -26,7 +26,8 @@ public class SecurityConfig extends Exception
         return http
                 .authorizeRequests()
                 .antMatchers("/").permitAll()
-                .antMatchers("/room/**").permitAll()                                 // 웹소켓 url 허용
+                .antMatchers("/room/**").permitAll()                    // 웹소켓 url 허용
+                .antMatchers("/ws/**").permitAll()                      // STOMP 허용
                 .antMatchers( "/css/**", "/js/**", "/img/**", "/lib/**").permitAll() // js 등등을 못 불러오면 안되니까...
                 .antMatchers("/user/signup").anonymous()
                 .antMatchers("/user/**").permitAll()                    // 유저 관련 요청은 오케이

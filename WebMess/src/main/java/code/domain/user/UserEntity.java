@@ -3,6 +3,7 @@ package code.domain.user;
 import code.domain.message.MessageEntity;
 import code.domain.room.RoomEntity;
 import code.dto.Friend;
+import code.dto.StompClient;
 import code.dto.WebSocketClient;
 import lombok.*;
 
@@ -100,6 +101,34 @@ public class UserEntity
                .email(email)
                .introduce(introduce)
                .sessions(new LinkedList<>())
+               .friends(friends)
+               .build();
+               
+    }
+
+    public StompClient toStompClient()
+    {
+        
+        List<Friend> friends = new ArrayList<>();
+
+        if(main != null)
+        {   
+            main.forEach((r)->{
+                UserEntity sub = r.getSub();
+                Friend f = sub.toFriend();
+
+                friends.add(f);
+            });
+        }
+
+        return StompClient.builder()
+               .no(userNo)
+               .name(name)
+               .colorCode(colorCode)
+               .colorName(colorName)
+               .email(email)
+               .introduce(introduce)
+               .sessionIds(new LinkedList<>())
                .friends(friends)
                .build();
                

@@ -4,11 +4,19 @@
         <meta charset="UTF-8">
         <title>WebMess</title>
 
+        <!--SockJS-->
         <script
             src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.6.1/sockjs.min.js"
             integrity="sha512-1QvjE7BtotQjkq8PxLeF6P46gEpBRXuskzIVgjFpekzFVF4yjRgrQvTG1MTOJ3yQgvTteKAcO7DSZI92+u/yZw=="
             crossorigin="anonymous"
             referrerpolicy="no-referrer"></script>
+        <!-- StompJS -->
+        <script
+        src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"
+        integrity="sha512-iKDtgDyTHjAitUDdLljGhenhPwrbBfqTKWO1mkhSFH3A7blITC9MhYon6SjnMhp4o0rADGw9yAC6EW4t5a4K3g=="
+        crossorigin="anonymous"
+        referrerpolicy="no-referrer"></script> 
+        <!--JQuery-->
         <script
             src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.1/jquery.min.js"
             integrity="sha512-aVKKRRi/Q/YV+4mjoKBsE4x3H+BkegoM/em46NNlCqNTmUYADjBbeNefNxYV7giUp0VxICtqdrbqU7iVaeZNXA=="
@@ -61,6 +69,24 @@
         </div>
 
         <script>
+
+            let sock = new SockJS("/ws");
+            let stomp = Stomp.over(sock);
+
+            stomp.connect({}, (msg) => {
+                    console.log(msg);
+                    // 이 방의 ID를 구독
+                    stomp.subscribe("/sub/chat", (data) => {
+
+                        console.log(data);
+                        //var html = "";
+                        //html += '<label style="color:' + data.color + '">' + data.sender + '</label> : ' + data.content + '<br>';
+                        //$("#chat").append(html);
+                        //document.getElementById("chat").scrollTop = document.getElementById("chat").scrollHeight;
+                        
+                    });
+                    
+                });
 
             let socket = new SockJS("/room");
             socket.onopen = () => 
