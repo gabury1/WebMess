@@ -1,5 +1,8 @@
 package code.config.stomp;
 
+import java.security.Principal;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -8,6 +11,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import javax.servlet.http.HttpSession;
 
+import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.http.server.ServerHttpRequest;
@@ -30,7 +34,8 @@ public class HandShaker extends HttpSessionHandshakeInterceptor
 {
     @Autowired
     UserRepository userRepository;
-
+    @Autowired
+    UserService userService;
 
     // 유저명 기반으로 Stomp클라이언트를 만든다.(Stomp클라이언트는 자신의 세션 정보들을 포함하고 있음.)
     final Map<String, StompClient> clientMap = new ConcurrentHashMap<>();
@@ -61,7 +66,7 @@ public class HandShaker extends HttpSessionHandshakeInterceptor
         sessionIdList.add(sessionId);
 
         try{
-            UserDto user = getNowUser(event).orElseThrow(() -> new NullPointerException());
+            UserDto user = userService.getNowUser(event).orElseThrow(() -> new NullPointerException());
             StompClient client;
             if(clientMap.containsKey(user.getName()))
             {
@@ -74,8 +79,6 @@ public class HandShaker extends HttpSessionHandshakeInterceptor
                 client.getSessionIds().add(sessionId);
                 clientMap.put(user.getName(), client);
             }
-            System.out.println(client);
-
         }
         catch(NullPointerException e)
         {
@@ -95,13 +98,13 @@ public class HandShaker extends HttpSessionHandshakeInterceptor
         String sessionId = (String)event.getMessage().getHeaders().get("simpSessionId");
         sessionIdList.remove(sessionId);
         try{
-            UserDto user = getNowUser(event).orElseThrow(() -> new NullPointerException());
+            UserDto user = userService.getNowUser(event).orElseThrow(() -> new NullPointerException());
             StompClient client = clientMap.get(user.getName());
             List<?> list = client.getSessionIds();
             list.remove(sessionId);
 
-            if(list.isEmpty())
-                clientMap.remove(user.getName());
+            // 유저의 연결이 모두 끝났다면 그냥 클라이언트를 삭제해도 좋다.
+            if(list.isEmpty()) clientMap.remove(user.getName());
             
         }
         catch(Exception e)
@@ -113,18 +116,30 @@ public class HandShaker extends HttpSessionHandshakeInterceptor
         
     }
 
-
-    public Optional<UserDto> getNowUser(AbstractSubProtocolEvent event)
+    // 인증된 유저들의 목록과 숫자를 반환해준다.
+    public JSONObject authenticUserList()
     {
-        try{
-            UsernamePasswordAuthenticationToken t = (UsernamePasswordAuthenticationToken) event.getUser();
-            return Optional.ofNullable((UserDto)t.getPrincipal());
-        }
-        catch(Exception e)
+        HashMap<String, Object> userList = new HashMap<>();
+
+        // 유저리스트를 담을 배열
+        ArrayList<JSONObject> array = new ArrayList<>();
+        for(StompClient s : clientMap.values())
         {
-            return Optional.ofNullable(null);
+            // 유저 정보를 담을 해쉬맵
+            HashMap<String, Object> info = new HashMap<>();
+
+            info.put("no", s.getNo());
+            info.put("name", s.getName());
+            info.put("color", s.getColorCode());
+
+            array.add(new JSONObject(info));
         }
-        
+
+        userList.put("purpose", "userList");
+        userList.put("userCnt", sessionIdList.size());
+        userList.put("users", array);
+
+        return new JSONObject(userList);
     }
 
 

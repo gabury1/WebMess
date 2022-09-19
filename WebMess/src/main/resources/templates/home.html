@@ -75,15 +75,39 @@
 
             stomp.connect({}, (msg) => {
                     console.log(msg);
-                    // 이 방의 ID를 구독
-                    stomp.subscribe("/sub/chat", (data) => {
 
-                        console.log(data);
-                        //var html = "";
-                        //html += '<label style="color:' + data.color + '">' + data.sender + '</label> : ' + data.content + '<br>';
-                        //$("#chat").append(html);
-                        //document.getElementById("chat").scrollTop = document.getElementById("chat").scrollHeight;
+                    stomp.subscribe("/sub/allChat", (message) => {
+
+                        var data = JSON.parse(message.body);
+
+                        var html = "";
+                        html += '<label style="color:' + data.color + '">' + data.sender + '</label> : ' + data.content + '<br>';
+                            $("#chat").append(html);
+                        document.getElementById("chat").scrollTop = document.getElementById("chat").scrollHeight;
                         
+                    });
+
+                    stomp.subscribe("/sub/userList", (message) => {
+
+                        var data = JSON.parse(message.body);
+
+                        let cntHTML = "<div>현재 연결 수 : " + data.userCnt + "</div>";
+                        let userHTML;
+
+                        for (let i = 0; i < data.users.length; i++) {
+                            userHTML += '<tr>'+
+                            '   <td>'+
+                            '       <a href="/user/' + data.users[i].no + '" style="color:' + data.users[i].color + '">'+
+                                    data.users[i].name +
+                            '       </a>'+
+                            '   </td>'+
+                            '/tr>';
+                        }
+
+                        $("#userCnt").html(cntHTML);
+                        $("#userTable").html(userHTML)
+
+
                     });
                     
                 });
@@ -100,12 +124,6 @@
                 };
                 socket.send(JSON.stringify(subscribe));
 
-                // 채팅을 수신하겠다는 선언
-                subscribe = {
-                    purpose : "subscribe",
-                    target : "chat"
-                };
-                socket.send(JSON.stringify(subscribe));
             };
             socket.onmessage = msgEvent;
             socket.onclose = () => console.log("Info : connection closed");
@@ -116,21 +134,7 @@
                 let data = JSON.parse(message.data);
 
                 if (data.purpose == "userList") { // 유저 리스트가 왔을때
-                    let cntHTML = "<div>현재 연결 수 : " + data.userCnt + "</div>";
-                    let userHTML;
-
-                    for (let i = 0; i < data.users.length; i++) {
-                        userHTML += '<tr>'+
-                        '   <td>'+
-                        '       <a href="/user/' + data.users[i].no + '" style="color:' + data.users[i].color + '">'+
-                                data.users[i].name +
-                        '       </a>'+
-                        '   </td>'+
-                        '/tr>';
-                    }
-
-                    $("#userCnt").html(cntHTML);
-                    $("#userTable").html(userHTML)
+ 
                 }
                 else if(data.purpose == "chat")
                 {
@@ -160,7 +164,7 @@
                     content : str
                 };
 
-                socket.send(JSON.stringify(message));
+                stomp.send("/pub/allChat", {}, str);
                 $("#txt_send").val("");
             }
 

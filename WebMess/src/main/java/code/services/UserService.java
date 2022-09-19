@@ -1,15 +1,18 @@
 package code.services;
 
+import java.security.Principal;
 import java.util.HashMap;
 import java.util.Optional;
 
 import org.apache.catalina.User;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.socket.messaging.AbstractSubProtocolEvent;
 
 import code.domain.user.UserEntity;
 import code.domain.user.UserRelationEntity;
@@ -158,6 +161,33 @@ public class UserService {
             return Optional.of((UserDto)principal);
 
     }
+
+    public Optional<UserDto> getNowUser(AbstractSubProtocolEvent event)
+    {
+        try{
+            UsernamePasswordAuthenticationToken t = (UsernamePasswordAuthenticationToken) event.getUser();
+            return Optional.ofNullable((UserDto)t.getPrincipal());
+        }
+        catch(Exception e)
+        {
+            return Optional.ofNullable(null);
+        }
+        
+    }
+
+    public Optional<UserDto> getNowUser(Principal prin)
+    {
+        try{
+            UsernamePasswordAuthenticationToken t = (UsernamePasswordAuthenticationToken) prin;
+            return Optional.ofNullable((UserDto)t.getPrincipal());
+        }
+        catch(Exception e)
+        {
+            return Optional.ofNullable(null);
+        }
+        
+    }
+
 
 
 
