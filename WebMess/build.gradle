@@ -25,6 +25,11 @@ dependencies {
 	// WEB SOCKET
 	implementation 'org.springframework.boot:spring-boot-starter-websocket'
 
+	// RABBITMQ
+	implementation 'org.springframework.boot:spring-boot-starter-amqp'
+	implementation 'org.springframework.boot:spring-boot-starter-reactor-netty'
+	testImplementation 'org.springframework.amqp:spring-rabbit-test'
+
 	//SPRING SECURITY
 	implementation 'org.springframework.boot:spring-boot-starter-security' // 스프링 시큐리티
 	testImplementation 'org.springframework.security:spring-security-test'

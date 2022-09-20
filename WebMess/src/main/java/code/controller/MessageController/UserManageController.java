@@ -37,7 +37,7 @@ public class UserManageController
 
 
     @MessageMapping("/status")
-    @SendToUser("/sub/status")
+    @SendToUser("/topic/status")
     public String status(String name)
     {
 
@@ -82,7 +82,7 @@ public class UserManageController
     {
         JSONObject json = sessionStorage.authenticUserList();
 
-        sender.convertAndSend("/sub/userList", json.toJSONString());
+        sender.convertAndSend("/topic/userList", json.toJSONString());
     }
     
 

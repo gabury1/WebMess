@@ -9,6 +9,8 @@ import org.springframework.web.socket.config.annotation.WebSocketConfigurer;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
 import org.springframework.web.socket.server.support.HttpSessionHandshakeInterceptor;
 
+import reactor.netty.tcp.TcpClientConfig;
+
 @Configuration
 @EnableWebSocketMessageBroker
 public class StompConfigurer implements WebSocketMessageBrokerConfigurer
@@ -21,8 +23,13 @@ public class StompConfigurer implements WebSocketMessageBrokerConfigurer
     public void configureMessageBroker(MessageBrokerRegistry registry)
     {
         // Websocket STOMP 설정. 이 정도면 작동은 된다.
-        registry.enableSimpleBroker("/sub");
-        registry.setApplicationDestinationPrefixes("/pub");
+        registry.setApplicationDestinationPrefixes("/pub")
+                .enableStompBrokerRelay("/topic", "/queue")
+                .setRelayHost("localhost")
+                .setRelayPort(5672)
+                .setClientLogin("LYST")
+                .setClientPasscode("LYST")
+                ;
 
     }
 
@@ -33,16 +40,9 @@ public class StompConfigurer implements WebSocketMessageBrokerConfigurer
                 .addEndpoint("/ws")
                 .setAllowedOrigins("http://localhost:8080")
                 .withSockJS()
-                .setInterceptors(handshakeInterceptor())
                 ;
 
     }
 
-    @Bean
-    public HandShaker handshakeInterceptor()
-    {
-
-        return new HandShaker();
-    }
 
 }

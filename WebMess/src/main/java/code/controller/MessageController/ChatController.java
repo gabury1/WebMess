@@ -31,7 +31,7 @@ public class ChatController
 
     // 전체 채팅
     @MessageMapping("/allChat")
-    @SendTo("/sub/allChat")
+    @SendTo("/topic/allChat")
     public String allChat(@Payload String data, Principal principal)
     {
         try{

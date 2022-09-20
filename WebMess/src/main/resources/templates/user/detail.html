@@ -101,7 +101,7 @@
             let stomp = Stomp.over(sock);
             stomp.connect({}, (msg) => {
                 
-                stomp.subscribe("/user/sub/status", (json) => {
+                stomp.subscribe("/user/topic/status", (json) => {
                     
                     if(json.body == "true")
                     {
@@ -120,7 +120,7 @@
 
                 });
 
-                stomp.subscribe("/sub/userList", (json) => {
+                stomp.subscribe("/topic/userList", (json) => {
 
                     var data = JSON.parse(json.body);
 

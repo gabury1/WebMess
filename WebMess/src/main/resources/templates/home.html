@@ -76,7 +76,7 @@
             stomp.connect({}, (msg) => {
                     console.log(msg);
 
-                    stomp.subscribe("/sub/allChat", (message) => {
+                    stomp.subscribe("/topic/allChat", (message) => {
 
                         var data = JSON.parse(message.body);
 
@@ -87,7 +87,7 @@
                         
                     });
 
-                    stomp.subscribe("/sub/userList", (message) => {
+                    stomp.subscribe("/topic/userList", (message) => {
 
                         var data = JSON.parse(message.body);
 
