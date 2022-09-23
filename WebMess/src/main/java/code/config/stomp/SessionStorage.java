@@ -3,12 +3,15 @@ package code.config.stomp;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import javax.jws.soap.SOAPBinding.Style;
 import javax.servlet.http.HttpSession;
 
 import org.json.simple.JSONObject;
@@ -20,9 +23,11 @@ import org.springframework.http.server.ServletServerHttpRequest;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.WebSocketHandler;
+import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.messaging.AbstractSubProtocolEvent;
 import org.springframework.web.socket.messaging.SessionConnectEvent;
 import org.springframework.web.socket.messaging.SessionDisconnectEvent;
+import org.springframework.web.socket.messaging.SessionSubscribeEvent;
 import org.springframework.web.socket.server.support.HttpSessionHandshakeInterceptor;
 
 import code.domain.user.UserEntity;
@@ -44,10 +49,15 @@ public class SessionStorage
     @Autowired
     UserService userService;
 
+    WebSocketSession session;
+
     // 유저명 기반으로 Stomp클라이언트를 만든다.(Stomp클라이언트는 자신의 세션 정보들을 포함하고 있음.)
     final Map<String, StompClient> clientMap = new ConcurrentHashMap<>();
     // 세션ID 저장
     final List<String> sessionIdList = new LinkedList<>();
+
+    // 친구리스트을 받을 유저들의 맵 (구독 요청을 넣을때, 이벤트 함수가 두번씩 실행되는 버그가 있다. 해결법을 몰루겠다..)
+    final Map<String, Set<String>> friendReceivers = new ConcurrentHashMap<>();
 
     ////////////////////////////
     ////// Session Manage //////
@@ -57,7 +67,7 @@ public class SessionStorage
     @EventListener
     public void onConnection(SessionConnectEvent event)
     {
-        String sessionId = (String)event.getMessage().getHeaders().get("simpSessionId");
+        String sessionId = getSessionId(event);
         sessionIdList.add(sessionId);
 
         try{
@@ -88,9 +98,34 @@ public class SessionStorage
     }
 
     @EventListener
+    public void onSubscribe(SessionSubscribeEvent event)
+    {
+        String userName = userService.getNowUser(event).map(u->u.getName()).orElse("anon");
+        String sessionId = getSessionId(event);
+        if(event.getMessage().getHeaders().get("simpDestination").equals("/topic/friendList"))
+        {
+            
+           if(friendReceivers.containsKey(userName))
+           {
+                Set<String> temp = friendReceivers.get(userName);
+                temp.add(sessionId);
+           }
+           else
+           {
+                Set<String> sessionSet = new HashSet<>();
+                sessionSet.add(sessionId);
+                friendReceivers.put(userName, sessionSet);
+           }
+
+        }
+
+    }
+
+    @EventListener
     public void onDisConnection(SessionDisconnectEvent event)
     {
-        String sessionId = (String)event.getMessage().getHeaders().get("simpSessionId");
+        String userName = userService.getNowUser(event).map(u->u.getName()).orElse("anon");
+        String sessionId = getSessionId(event);
         sessionIdList.remove(sessionId);
         try{
             UserDto user = userService.getNowUser(event).orElseThrow(() -> new NullPointerException());
@@ -101,15 +136,27 @@ public class SessionStorage
             // 유저의 연결이 모두 끝났다면 그냥 클라이언트를 삭제해도 좋다.
             if(list.isEmpty()) clientMap.remove(user.getName());
             
+            if(friendReceivers.containsKey(userName))
+            {
+
+                Set<String> set = friendReceivers.get(userName);
+                set.remove(sessionId);
+                if(set.isEmpty()) friendReceivers.remove(userName);
+            }
+
         }
         catch(Exception e)
         {
 
 
         }
-
         
     }
+
+
+
+
+
 
     /////////////////////////////////
     /////////// User Data ///////////
@@ -185,4 +232,12 @@ public class SessionStorage
         if(clientMap.keySet().contains(name)) return true;
         else return false;
     }
+
+    // 접속의 세션을 반환
+    String getSessionId(AbstractSubProtocolEvent event)
+    {
+
+        return (String)event.getMessage().getHeaders().get("simpSessionId");
+    }
+
 }

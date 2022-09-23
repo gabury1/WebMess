@@ -19,6 +19,13 @@
         <link rel="stylesheet" type="text/css" href="/css/private/private.css">
         <link rel="stylesheet" type="text/css" href="/css/private/friend.css">
 
+        <!-- StompJS -->
+        <script
+        src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"
+        integrity="sha512-iKDtgDyTHjAitUDdLljGhenhPwrbBfqTKWO1mkhSFH3A7blITC9MhYon6SjnMhp4o0rADGw9yAC6EW4t5a4K3g=="
+        crossorigin="anonymous"
+        referrerpolicy="no-referrer"></script> 
+
 
     </head>
     <body>
@@ -40,34 +47,23 @@
     <script src="/js/private/private.js"></script>
     <script>
 
-            let socket = new SockJS("/room");
-            socket.onopen = () => 
-            {
-                console.log("Info : connection opened");
+          let sock = new SockJS("/ws");
+            let stomp = Stomp.over(sock);
 
-                // 인증된 유저 리스트를 수신하겠다는 선언
-                var subscribe = {
-                    purpose : "subscribe",
-                    target : "userList"
-                };
-                //socket.send(JSON.stringify(subscribe));
+            stomp.connect({}, (msg) => {
+                    console.log(msg);
 
-                // 내 친구리스트 수신하겠다는 선언
-                subscribe = {
-                    purpose : "subscribe",
-                    target : "friendList"
-                };
-                socket.send(JSON.stringify(subscribe));
-            };
-            socket.onmessage = msgEvent;
-            socket.onclose = () => console.log("Info : connection closed");
-            socket.onerror = err => console.log(err);
+                    stomp.subscribe("/topic/userList", (message) => {
 
-            function msgEvent(message)
-            {
-                var data = message.data;
-                console.log(data);
-            }
+
+                    });
+
+                    stomp.subscribe("/topic/friendList", (message) => {
+
+
+                    });
+                    
+            });
 
     </script>
 

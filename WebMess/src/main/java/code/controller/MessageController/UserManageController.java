@@ -1,21 +1,16 @@
 package code.controller.MessageController;
 
 import java.security.Principal;
-import java.util.Map;
 
 import org.json.simple.parser.*;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.messaging.MessageHeaders;
-import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.messaging.simp.annotation.SendToUser;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Controller;
-
-import com.mysql.cj.Session;
 
 import code.config.stomp.SessionStorage;
 import code.services.UserService;
@@ -68,13 +63,12 @@ public class UserManageController
                 sessionStorage.removeFriend(myName, target);
             }
         } catch (ParseException e) {
-            // TODO Auto-generated catch block
+            
             e.printStackTrace();
         }
 
 
     }
-
 
     // 유저리스트를 송신해준다.
     @Scheduled(fixedDelay = 500)

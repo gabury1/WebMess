@@ -32,8 +32,6 @@ public class StompConfigurer implements WebSocketMessageBrokerConfigurer
                 .enableStompBrokerRelay("/topic")
                 .setRelayHost(host)
                 .setRelayPort(61613)
-                .setSystemLogin(username)
-                .setSystemPasscode(password)
                 .setClientLogin(username)
                 .setClientPasscode(password);
                 ;
