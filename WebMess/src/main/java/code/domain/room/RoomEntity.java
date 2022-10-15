@@ -27,4 +27,10 @@ public class RoomEntity
     @ManyToOne(fetch = FetchType.LAZY)
     UserEntity member2; // 채팅방에 들어온 두번째 멤버
 
+    // 첫째 둘째 모두 방을 삭제했다면 아예 이 엔티티를 삭제한다.(대화내용 포함)
+    @Column(name="visible1")
+    Boolean visible1; // 첫째 멤버가 방을 삭제했는가?
+    @Column(name="visible2")
+    Boolean visible2; // 둘째 멤버가 방을 삭제했는가?
+
 }

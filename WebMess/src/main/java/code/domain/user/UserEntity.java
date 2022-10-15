@@ -2,7 +2,6 @@ package code.domain.user;
 
 import code.domain.message.MessageEntity;
 import code.domain.room.RoomEntity;
-import code.dto.Friend;
 import code.dto.StompClient;
 import code.dto.WebSocketClient;
 import lombok.*;
@@ -62,36 +61,11 @@ public class UserEntity
     List<UserRelationEntity> main; // 본인이 등록한 친구 관계
 
     @JoinColumn(name = "sub_no")
-    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     List<UserRelationEntity> sub; // 다른 사람이 본인을 친구로 등록한 관계
-
-    public Friend toFriend()
-    {
-        return  Friend.builder()
-        .no(getUserNo())
-        .name(getName())
-        .colorCode(getColorCode())
-        .colorName(getColorName())
-        .email(getEmail())
-        .introduce(getIntroduce())
-        .build();
-
-    }
 
     public WebSocketClient toWebSocketClient()
     {
-        
-        List<Friend> friends = new ArrayList<>();
-
-        if(main != null)
-        {   
-            main.forEach((r)->{
-                UserEntity sub = r.getSub();
-                Friend f = sub.toFriend();
-
-                friends.add(f);
-            });
-        }
 
         return WebSocketClient.builder()
                .no(userNo)
@@ -101,25 +75,12 @@ public class UserEntity
                .email(email)
                .introduce(introduce)
                .sessions(new LinkedList<>())
-               .friends(friends)
                .build();
                
     }
 
     public StompClient toStompClient()
     {
-        
-        List<Friend> friends = new ArrayList<>();
-
-        if(main != null)
-        {   
-            main.forEach((r)->{
-                UserEntity sub = r.getSub();
-                Friend f = sub.toFriend();
-
-                friends.add(f);
-            });
-        }
 
         return StompClient.builder()
                .no(userNo)
@@ -129,7 +90,6 @@ public class UserEntity
                .email(email)
                .introduce(introduce)
                .sessionIds(new LinkedList<>())
-               .friends(friends)
                .build();
                
     }

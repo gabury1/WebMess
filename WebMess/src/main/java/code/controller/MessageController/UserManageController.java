@@ -39,37 +39,6 @@ public class UserManageController
         return sessionStorage.isOnline(name).toString();
     }
 
-    @MessageMapping("/friend")
-    public void friend(String json, Principal principal)
-    {
-        
-        try {
-            JSONObject object;
-            object = (JSONObject) parser.parse(json);
-
-            String method = (String) object.get("method");
-            String target = (String) object.get("name");
-            
-            String myName = userService.getNowUser(principal).map((u) -> u.getName()).orElse("anon");
-    
-            if(method.equals("add"))
-            {
-    
-                sessionStorage.addFriend(myName, target);
-            }
-            else
-            {
-    
-                sessionStorage.removeFriend(myName, target);
-            }
-        } catch (ParseException e) {
-            
-            e.printStackTrace();
-        }
-
-
-    }
-
     // 유저리스트를 송신해준다.
     @Scheduled(fixedDelay = 500)
     public void userList()
@@ -78,6 +47,17 @@ public class UserManageController
 
         sender.convertAndSend("/topic/userList", json.toJSONString());
     }
+
+    @Scheduled(fixedDelay = 500)
+    public void allUserList()
+    {
+        JSONObject json = sessionStorage.getAllUser();
+
+        sender.convertAndSend("/topic/allUserList", json.toJSONString());
+
+    }
+
+
     
 
 }

@@ -32,8 +32,7 @@ public class WebSocketClient
     // 현재 소유하고 있는 세션
     List<WebSocketSession> sessions;
     
-    // 현재 친구들
-    List<Friend> friends = new LinkedList<>();
+
     // 내가 속한 방들
 
     public void sendToClient(String message)

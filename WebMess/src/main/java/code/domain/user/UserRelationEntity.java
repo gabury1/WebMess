@@ -18,11 +18,11 @@ public class UserRelationEntity
     Long UserRelationNo;
 
     @JoinColumn(name="main_no")
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     UserEntity main; // 누가
 
     @JoinColumn(name="sub_no")
-    @ManyToOne(fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     UserEntity sub; // 누구를
 
 }

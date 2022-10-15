@@ -14,6 +14,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import javax.jws.soap.SOAPBinding.Style;
 import javax.servlet.http.HttpSession;
 
+import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
@@ -31,14 +32,17 @@ import org.springframework.web.socket.messaging.SessionSubscribeEvent;
 import org.springframework.web.socket.server.support.HttpSessionHandshakeInterceptor;
 
 import code.domain.user.UserEntity;
+import code.domain.user.UserRelationEntity;
 import code.domain.user.UserRelationRepository;
 import code.domain.user.UserRepository;
-import code.dto.Friend;
 import code.dto.StompClient;
 import code.dto.UserDto;
 import code.services.UserService;
+import lombok.Getter;
+import lombok.Setter;
 
 @Component
+@Getter @Setter
 public class SessionStorage
 {
     @Autowired
@@ -102,7 +106,9 @@ public class SessionStorage
     {
         String userName = userService.getNowUser(event).map(u->u.getName()).orElse("anon");
         String sessionId = getSessionId(event);
-        if(event.getMessage().getHeaders().get("simpDestination").equals("/topic/friendList"))
+        //System.out.println(event);
+
+        if(event.getMessage().getHeaders().get("simpDestination").equals("/user/topic/friendList"))
         {
             
            if(friendReceivers.containsKey(userName))
@@ -138,7 +144,6 @@ public class SessionStorage
             
             if(friendReceivers.containsKey(userName))
             {
-
                 Set<String> set = friendReceivers.get(userName);
                 set.remove(sessionId);
                 if(set.isEmpty()) friendReceivers.remove(userName);
@@ -152,8 +157,6 @@ public class SessionStorage
         }
         
     }
-
-
 
 
 
@@ -188,42 +191,73 @@ public class SessionStorage
         return new JSONObject(userList);
     }
 
-    // 친구 추가
-    public void addFriend(String main, String sub)
+    // 친구리스트
+    public String getFriendList(Long mainNo)
     {
-        // 클라이언트 받아오기
-        StompClient client = clientMap.get(main);
-        List<Friend> friends = client.getFriends();
-        
-        // DB에서 친구 정보를 가져온다. 
-        Friend friend = userRepository.findByName(sub).get().toFriend();
-        friends.add(friend);
+        List<UserRelationEntity> list = userRelationRepository.findByMainNo(mainNo);
+        HashMap<String, Object> map = new HashMap<>();
 
+        JSONArray online = new JSONArray();
+        JSONArray offline = new JSONArray();
+        for(UserRelationEntity u : list)
+        {
+            HashMap<String, String> userData = new HashMap<>();
+            UserEntity sub = u.getSub();
+
+            userData.put("name", sub.getName());
+            userData.put("no", sub.getUserNo().toString());
+            userData.put("introduce", sub.getIntroduce());
+            userData.put("colorCode", sub.getColorCode());
+            userData.put("colorName", sub.getColorName());
+
+            if(isOnline(sub.getName()))
+            {
+                online.add(new JSONObject(userData));
+            } else{
+                offline.add(new JSONObject(userData));
+            }
+            
+            map.put("friendCnt", list.size());
+            map.put("onlineUser", online);
+            map.put("offlineUser", offline);
+
+        }
+        
+        return  new JSONObject(map).toJSONString()  ;
     }
 
-    
-    // 친구 삭제
-    public void removeFriend(String main, String sub)
+
+    // 모든 유저를 리스트로 만들어서 전송한다.
+    public JSONObject getAllUser()
     {
-        // 클라이언트 받아오기
-        StompClient client = clientMap.get(main);
-        List<Friend> friends = client.getFriends();
-        
-        // DB에서 친구 정보를 가져온다. 
-        Friend friend = userRepository.findByName(sub).get().toFriend();
+        List<UserEntity> users = userRepository.findAll();
 
-         // 친구명 목록에서 이름을 삭제해준다.
-         try
-         {                
-             Friend target = friends.stream()
-                                 .filter(f -> friend.getName().equals(f.getName()))
-                                 .findFirst().orElseThrow(()-> new Exception("친구 삭제 실패"));
+        HashMap<String, Object> data = new JSONObject();
         
-             friends.remove(target);
+        JSONArray online = new JSONArray();
+        JSONArray offline = new JSONArray();
+
+        for(UserEntity u : users)
+        {       
+            HashMap<String, String> userData = new HashMap<>();
+            userData.put("name", u.getName());
+            userData.put("no", u.getUserNo().toString());
+            userData.put("introduce", u.getIntroduce());
+            userData.put("colorCode", u.getColorCode());
+            userData.put("colorName", u.getColorName());
+
+            if(clientMap.containsKey(u.getName())) online.add(new JSONObject(userData));
+            else offline.add(new JSONObject(userData));
+
+        }
+
         
-         }catch(Exception e){System.out.println(e.getMessage());}
+        data.put("userCnt", users.size());
+        data.put("onlineUser", online);
+        data.put("offlineUser", offline);
 
 
+        return new JSONObject(data);
     }
 
     // 유저가 현재 온라인 상태인가?

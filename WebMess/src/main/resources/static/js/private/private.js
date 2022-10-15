@@ -17,7 +17,7 @@ function friendMode()
         },
         error : (e) => alert(e.responseText)
     })
-
+    getFriend();
 }
 
 function chatMode()
@@ -36,6 +36,52 @@ function chatMode()
         },
         error : (e) => alert(e.responseText)
     })
+
+
+}
+
+function getFriend()
+{
+    $.ajax({
+        url : "/user/relationList",
+        data : {},
+        method : "GET",
+        success : (data) => {
+                data = JSON.parse(data);
+
+                // 유저리스트를 JSON으로 바꿔준다.
+                var html = "";
+                var online = data.onlineUser;           
+                
+                for(var i = 0; i < online.length; i++)
+                {
+
+                    html += 
+                        '<div class="userContainer">'+
+                        '                <a class="userName" style="color:' + online[i].colorCode + '" href="/user/' + online[i].no + '">' + online[i].name + '</a>'+
+                        '                <div class="limeLed"></div> <div style="display:inline-block; min-width:60%"></div> <button>채팅</button><br><br>'+ 
+                        '                <div class="introduce">' + online[i].introduce + '</div>'+
+                        '</div>';
+                }
+
+                var offline = data.offlineUser;
+                for(var i = 0; i < offline.length; i++)
+                {
+                    html +=  
+                    '<div class="userContainer">'+
+                    '                <a class="userName" style="color:' + offline[i].colorCode + '" href="/user/' + offline[i].no + '">' + offline[i].name + '</a>'+
+                    '                <div class="redLed"></div> <div style="display:inline-block; min-width:60%"></div> <button>채팅</button><br><br>'+ 
+                    '                <div class="introduce">' + offline[i].introduce + '</div>'+
+                    '</div>';
+
+                }
+
+                $("#friend_box").html(html);
+
+        },
+        error : (e) => alert(e.responseText)
+
+    });
 
 
 }

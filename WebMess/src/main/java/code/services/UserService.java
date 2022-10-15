@@ -14,6 +14,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.socket.messaging.AbstractSubProtocolEvent;
 
+import code.config.stomp.SessionStorage;
 import code.domain.user.UserEntity;
 import code.domain.user.UserRelationEntity;
 import code.domain.user.UserRelationRepository;
@@ -31,7 +32,7 @@ public class UserService {
     
     @Autowired
     UserRelationRepository userRelationRepository;
-
+    
     @Autowired
     PasswordEncoder encoder;
 

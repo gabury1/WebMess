@@ -161,22 +161,10 @@
                         console.log("requestFriend Result : " + message);
                         if(message == "okFriend")
                         { 
-                            var data = {
-                                method : "add",
-                                name : name
-                            };
-
-                            stomp.send("/pub/friend", {}, JSON.stringify(data));
                             $("#friendButton").html("친구가 되었습니다!");    
                         }
                         else if(message == "notFriend") 
                         {
-                            var data = {
-                                method : "delete",
-                                name : name
-                            };
-
-                            stomp.send("/pub/friend", {}, JSON.stringify(data));
                             $("#friendButton").html("더 이상 친구가 아닙니다..");
                         }
                         else alert(message);

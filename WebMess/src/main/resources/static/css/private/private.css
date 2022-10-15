@@ -25,6 +25,11 @@ body{
     cursor: pointer;
 }
 
+#result_box{
+    overflow: scroll;
+
+}
+
 .menu_item:hover{
     color: #00dbc5;
 }
@@ -32,4 +37,43 @@ body{
 .flex{
     display: flex;
     flex-direction: row;
+}
+
+
+.userName{
+    text-decoration: none;
+    font-size: x-large;
+    color: black;
+    font-weight: bolder;
+    cursor: pointer;
+}
+
+.introduce{
+    font-size: smaller;
+
+}
+
+.userContainer{
+    border-style: solid;
+    border-color: black;
+    border-width: 0px;
+    border-bottom-width: 3px;
+
+    padding: 5px 30px 20px 10px;
+}
+
+.limeLed{
+    background-color: lime;
+    border-radius: 20px;
+    width: 10px;
+    height: 10px;
+    display:inline-block ;
+}
+
+.redLed{
+    background-color: red;
+    border-radius: 20px;
+    width: 10px;
+    height: 10px;
+    display:inline-block ;
 }

@@ -5,34 +5,23 @@
                 <button id="search_button">검색</button>
         </div>
         
-        <div id="result_box">
-            <label for="only_online"><input id="only_online" type="checkbox">온라인</label> 
+        <div>
+            <label for="only_online"><input id="only_online" type="checkbox" checked>온라인</label> 
             <label for="near_by"><input id="near_by" type="checkbox">가까운</label> 
-
+        </div>
+        <div id="result_box">
             
-
         </div>
     </div>
 
-    <div id="friend_box">
-        <div>
-            <div style="border-style: solid; height: 30px;">온라인</div>
-            <div id="onlineFriendBox">
-
-
-
-            </div>
+    <div class="flex" style="flex-direction: column;">
+        <div style="margin-left: 50px;">
+            <b>친구들</b>
+            <button onclick="getFriend()" style="height: 60px; width: 30%;">새로고침</button>
         </div>
-        <div>
-            <div style="border-style: solid; height: 30px;">오프라인</div>
-            <div id="offlineFriendBox">
-
-
-
-            </div>
+        <div id="friend_box">
         </div>
     </div>
-
 
     <!-- <div style="color: #00dbc5"> Oh, venator. Beatus sanctus.<br> Tuam fadi par
     diat.<br> Cor tuus ne victus fiat morte.<br> Erit sanguinem opulento... </div>

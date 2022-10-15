@@ -1,5 +1,6 @@
 package code.controller;
 
+import code.config.stomp.SessionStorage;
 import code.dto.SignUpDto;
 import code.dto.UserDto;
 import code.services.UserService;
@@ -17,13 +18,16 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import com.mysql.cj.Session;
+
 @Controller @RequestMapping("/user")
 @RequiredArgsConstructor
 public class UserController
 {
     @Autowired
     UserService userService;
-
+    @Autowired
+    SessionStorage storage;
     /////////////////////
     ////// Request //////
     /////////////////////
@@ -115,5 +119,14 @@ public class UserController
         // 맞다면 true, 틀리다면 false
         return userService.isMyFriend(mainNo, subNo);
     }
+
+    // Read2 (해당 유저가 친구로 등록한 모든 유저를 불러온다.)
+    @GetMapping("/relationList")
+    @ResponseBody
+    public String getRelationList()
+    {
+        return storage.getFriendList(userService.getNowUser().map(u -> u.getNo()).orElse(-1L));
+    }
+
 
 }

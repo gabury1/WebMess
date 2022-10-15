@@ -23,8 +23,6 @@ public class StompClient
     // 현재 소유하고 있는 세션
     List<String> sessionIds;
 
-    // 현재 친구들
-    List<Friend> friends;
     // 내가 속한 방들
 
 }
